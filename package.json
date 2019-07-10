@@ -1,0 +1,16 @@
+{
+  "name": "decrypto",
+  "version": "0.0.0",
+  "main": "module.js",
+  "private": true,
+  "files": [
+    "module.js",
+    "words.json",
+    "words-en.json",
+    "public"
+  ],
+  "dependencies": {
+    "ws-server-engine": "git://github.com/xdghcnt/ws-server-engine.git",
+    "randomcolor": "0.5.3"
+  }
+}
