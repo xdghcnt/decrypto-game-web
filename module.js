@@ -187,16 +187,18 @@ function init(wsServer, path) {
                         blackTry: calcTry("black"),
                         whiteTry: calcTry("white"),
                         blackHackTry: calcTry("black", true),
-                        whiteHackTry: calcTry("white", true)
+                        whiteHackTry: calcTry("white", true),
+                        blackCode: state.black.code,
+                        whiteCode: state.white.code
                     };
                     room.rounds.push(round);
-                    if (!isEqualCodes(round.blackTry, state.black.code))
+                    if (!isEqualCodes(round.blackTry, round.blackCode))
                         room.blackFailCount++;
-                    if (!isEqualCodes(round.whiteTry, state.white.code))
+                    if (!isEqualCodes(round.whiteTry, round.whiteCode))
                         room.whiteFailCount++;
-                    if (isEqualCodes(round.blackHackTry, state.white.code))
+                    if (isEqualCodes(round.blackHackTry, round.whiteCode))
                         room.blackHackCount++;
-                    if (isEqualCodes(round.whiteHackTry, state.black.code))
+                    if (isEqualCodes(round.whiteHackTry, round.blackCode))
                         room.whiteHackCount++;
                     if (room.rounds.length === 8
                         || room.blackHackCount > 1
@@ -323,6 +325,12 @@ function init(wsServer, path) {
             this.userLeft = userLeft;
             this.userEvent = userEvent;
             this.eventHandlers = {
+                "highlight": (user, data) => {
+                    if (room.black.has(user) || room.white.has(user)) {
+                        const color = room.black.has(user) ? "black" : "white";
+                        send([...room[color]], "highlight", data);
+                    }
+                },
                 "set-code-words": (user, codeWords) => {
                     if (room.phase === 1 && codeWords && codeWords.length === 3
                         && !room.readyPlayers.has(user)
@@ -439,6 +447,11 @@ function init(wsServer, path) {
                 "change-name": (user, value) => {
                     if (value)
                         room.playerNames[user] = value.substr && value.substr(0, 60);
+                    update();
+                },
+
+                "change-color": (user) => {
+                    room.playerColors[user] = randomColor();
                     update();
                 },
                 "remove-player": (user, playerId) => {
