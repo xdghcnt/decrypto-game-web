@@ -1,0 +1,258 @@
+@font-face {
+    font-family: 'rodchenkocttregular';
+    src: url('media/rodchenkoctt_allfont.ru-webfont.woff2') format('woff2'),
+    url('media/rodchenkoctt_allfont.ru-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@font-face {
+    font-family: 'digital-7_monomono';
+    src: url('media/digital-7_mono-webfont.woff2') format('woff2'),
+    url('media/digital-7_mono-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+html {
+    background: gainsboro;
+}
+
+.player.self {
+    font-weight: bold;
+}
+
+.host-controls {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    padding: 6px;
+    background: rgba(255, 252, 245, 0.58);
+    user-select: none;
+    cursor: default;
+    text-align: right;
+    z-index: 2;
+}
+
+.little-controls {
+    text-align: left;
+    border-bottom: 1px solid;
+    padding-bottom: 6px;
+    height: 25px;
+}
+
+.little-controls input {
+    width: 45px;
+    background: transparent;
+    border: 1px solid;
+    color: #000000;
+    padding: 2px;
+    margin: 3px;
+}
+
+.little-controls div {
+    display: inline-block;
+}
+
+.little-controls i {
+    vertical-align: middle;
+    margin-right: 2px;
+}
+
+.little-controls .value {
+    vertical-align: middle;
+    margin: 0 3px;
+}
+
+.host-controls-menu {
+    display: none;
+    margin-bottom: 9px;
+}
+
+.host-controls:hover .host-controls-menu, .host-controls:focus .host-controls-menu {
+    display: block;
+}
+
+.settings-button {
+    cursor: pointer;
+}
+
+.settings-button:hover {
+    background: #d4d4d4;
+}
+
+.settings-button.inactive {
+    opacity: 0.3;
+}
+
+.side-buttons {
+    display: none;
+}
+
+.host-controls:hover .side-buttons, .host-controls:focus .side-buttons {
+    display: inline-block;
+}
+
+.kicked {
+    padding: 22px;
+    text-align: center;
+}
+
+.player {
+    user-select: none;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+}
+
+.player-host-controls {
+    display: none;
+    vertical-align: text-bottom;
+}
+
+.spectators .player-host-controls {
+    position: static;
+}
+
+.player-host-controls > * {
+    margin-left: 3px;
+}
+
+.player:hover .player-host-controls, .player:focus .player-host-controls {
+    display: flex;
+    flex: 0;
+}
+
+.player .host-button, .command .host-button {
+    font-size: 16px;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+.spectators-section {
+    display: none;
+    text-align: center;
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 1;
+}
+
+.spectators-section.active {
+    display: block;
+}
+
+.spectators {
+    display: inline-block;
+    padding: 6px;
+    cursor: pointer;
+    background: rgba(255, 252, 245, 0.58);
+    user-select: none;
+    white-space: nowrap;
+    height: 20px;
+}
+
+.spectators .player {
+    display: inline-block;
+    margin: 0 4px;
+    padding: 0;
+    width: auto;
+}
+
+.spectators .player:hover .player-host-controls, .spectators .player:focus .player-host-controls {
+    display: inline-block;
+}
+
+.black-slot-mark {
+    cursor: default !important;
+}
+
+.main-row {
+    display: flex;
+    width: 100%;
+    justify-content: space-evenly;
+}
+
+.team {
+    display: flex;
+    flex-direction: column;
+}
+
+.code {
+    width: 200px;
+    height: 200px;
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.black .code {
+    background-image: url(media/code_back_black.png);
+}
+
+.white .code {
+    background-image: url(media/code_back_white.png);
+}
+
+.stand {
+    display: flex;
+    width: 800px;
+    height: 310px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    padding: 0 4.2%;
+    margin: 0 10px;
+}
+
+.stand.black {
+    background-image: url(media/screen_black.jpg);;
+}
+
+.stand.white {
+    background-image: url(media/screen_white.jpg);
+}
+
+.timer {
+    text-align: center;
+    font-size: 30px;
+    font-family: digital-7_monomono, sans-serif;
+    color: #990000;
+    padding: 12px;
+}
+
+.player.current:before {
+    content: "➜ ";
+    line-height: 0;
+}
+
+.join-team-button {
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.players {
+    border: 1px solid;
+    padding: 4px;
+    margin-top: 6px;
+}
+
+@media (max-width: 965px) {
+    .stand {
+        display: none;
+    }
+}
+
+.stand-code {
+    width: 25%;
+    padding: 7.1% 3.5%;
+    color: white;
+    font-size: 20px;
+    text-align: center;
+    font-family: rodchenkocttregular, sans-serif;
+    height: 17%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

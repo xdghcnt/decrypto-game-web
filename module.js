@@ -57,20 +57,13 @@ function init(wsServer, path) {
                     masterTime: 60,
                     teamTime: 60,
                     time: null,
-                    paused: false,
+                    paused: true,
                     readyPlayers: new JSONSet(),
                     blackSlotPlayers: new JSONSet(),
                     whiteSpectators: new JSONSet(),
                     blackSpectators: new JSONSet(),
                     rounds: [
-                        //    {
-                        //        blackCodeWords: [],
-                        //        whiteCodeWords: [],
-                        //        blackTty: [],
-                        //        whiteTry: [],
-                        //        blackHackTry: [],
-                        //        whiteHackTry: []
-                        //    }
+                        //{ white: {codeWords: [], try: [], hackTry [] } }
                     ],
                     phase: 0,
                     testMode
@@ -78,25 +71,24 @@ function init(wsServer, path) {
             if (testMode)
                 [1, 2, 3, 4, 5, 6].forEach((ind) => {
                     room.playerNames[`kek${ind}`] = `kek${ind}`;
-                    room.black = new Set([1, 2, 3]);
-                    room.white = new Set([4, 5, 6]);
                 });
+            room.black = new JSONSet(["kek1", "kek2", "kek3"]);
+            room.white = new JSONSet(["kek4", "kek5", "kek6"]);
             this.room = room;
             this.lastInteraction = new Date();
-            const state = {
-                //    white: {
-                //        words: [],
-                //        code: [],
-                //        codeWords: [],
-                //        guesses: [{
-                //            player: "a",
-                //            votes: ["a", "b"],
-                //            code: [1, 2, 3]
-                //        }],
-                //        hackGuesses: [],
-                //        wordGuesses: []
-                //    }
-            };
+            const state = {black: {}, white: {}};
+            //    white: {
+            //        words: [],
+            //        code: [],
+            //        codeWords: [],
+            //        guesses: [{
+            //            player: "a",
+            //            votes: ["a", "b"],
+            //            code: [1, 2, 3]
+            //        }],
+            //        hackGuesses: [],
+            //        wordGuesses: []
+            //    }
             this.state = state;
             const
                 send = (target, event, data) => userRegistry.send(target, event, data),
@@ -135,8 +127,9 @@ function init(wsServer, path) {
                         room.blackHackCount = 0;
                         room.teamWin = null;
                         room.teamsLocked = true;
-                        room.paused = false;
                         room.rounds = [];
+                        if (room.timed)
+                            room.paused = false;
                         shuffleArray(defaultCodeWords);
                         state.black.words = defaultCodeWords.slice(0, 4);
                         state.white.words = defaultCodeWords.slice(0, 4);
@@ -156,9 +149,9 @@ function init(wsServer, path) {
                     state.white.code = shuffleArray([1, 2, 3, 4]).slice(0, 3);
                     room.blackCodeWords = [];
                     room.whiteCOdeWords = [];
+                    startTimer();
                     update();
                     updateState();
-                    startTimer();
                 },
                 startTeamPhase = () => {
                     room.phase = 2;
@@ -167,13 +160,15 @@ function init(wsServer, path) {
                     state.white.guesses = [];
                     state.black.hackGuesses = [];
                     state.white.hackGuesses = [];
+                    startTimer();
                     update();
                     updateState();
-                    startTimer();
                 },
                 calcTry = (team, isHack) => {
-                    const mostVoted = state[team][!isHack ? "guesses" : "hackGuesses"]
-                        .sort((a, b) => b.votes.length - a.votes.length)[0];
+                    const guesses = state[team][!isHack ? "guesses" : "hackGuesses"];
+                    if (guesses.length === 0)
+                        return [];
+                    const mostVoted = guesses.sort((a, b) => b.votes.length - a.votes.length)[0];
                     if (mostVoted.votes.length >= Math.ceil(room[team].size / 2))
                         return mostVoted.code;
                     else
@@ -182,23 +177,27 @@ function init(wsServer, path) {
                 isEqualCodes = (codeA, codeB) => codeA.every((word, index) => word === codeB[index]),
                 endRound = () => {
                     const round = {
-                        blackCodeWords: room.blackCodeWords,
-                        whiteCodeWords: room.whiteCodeWords,
-                        blackTry: calcTry("black"),
-                        whiteTry: calcTry("white"),
-                        blackHackTry: calcTry("black", true),
-                        whiteHackTry: calcTry("white", true),
-                        blackCode: state.black.code,
-                        whiteCode: state.white.code
+                        black: {
+                            codeWords: room.blackCodeWords,
+                            try: calcTry("black"),
+                            hackTry: calcTry("black", true),
+                            code: state.black.code
+                        },
+                        white: {
+                            codeWords: room.whiteCOdeWords,
+                            try: calcTry("white"),
+                            hackTry: calcTry("white", true),
+                            code: state.white.code
+                        },
                     };
                     room.rounds.push(round);
-                    if (!isEqualCodes(round.blackTry, round.blackCode))
+                    if (!isEqualCodes(round.black.try, round.black.code))
                         room.blackFailCount++;
-                    if (!isEqualCodes(round.whiteTry, round.whiteCode))
+                    if (!isEqualCodes(round.white.try, round.white.code))
                         room.whiteFailCount++;
-                    if (isEqualCodes(round.blackHackTry, round.whiteCode))
+                    if (isEqualCodes(round.black.hackTry, round.white.code))
                         room.blackHackCount++;
-                    if (isEqualCodes(round.whiteHackTry, round.blackCode))
+                    if (isEqualCodes(round.white.hackTry, round.black.code))
                         room.whiteHackCount++;
                     if (room.rounds.length === 8
                         || room.blackHackCount > 1
@@ -305,7 +304,7 @@ function init(wsServer, path) {
                     if (room.spectators.has(user))
                         delete room.playerNames[user];
                     room.spectators.delete(user);
-                    if (room.onlinePlayers.size === 0) {
+                    if (room.onlinePlayers.size === 0 && !testMode) {
                         clearInterval(timerInterval);
                         room.paused = true;
                     }
@@ -440,7 +439,7 @@ function init(wsServer, path) {
                     update();
                 },
                 "set-time": (user, type, value) => {
-                    if (user === room.hostId && ~["master", "team"].indexOf(type) && !isNaN(value) && value >= 1)
+                    if (user === room.hos3tId && ~["master", "team"].indexOf(type) && !isNaN(value) && value >= 1)
                         room[`${type}Time`] = value;
                     update();
                 },
