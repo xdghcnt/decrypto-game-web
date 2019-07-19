@@ -204,6 +204,7 @@ html {
     background-repeat: no-repeat;
     padding: 0 4.2%;
     margin: 0 10px;
+    box-sizing: border-box;
 }
 
 .stand.black {
@@ -255,4 +256,70 @@ html {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.word-row {
+    display: flex;
+    padding: 5px;
+}
+
+.word-rows {
+    display: flex;
+    flex-direction: column;
+}
+
+.main-pane {
+    display: flex;
+    justify-content: center;
+}
+
+.words-input {
+    min-width: 200px;
+    width: 100%;
+    max-width: 500px;
+}
+
+.words-input.white {
+    background: #f5f6f6;
+}
+
+.words-input.black {
+    background: #afbbca;
+}
+
+.words-section {
+    display: flex;
+    justify-content: center;
+}
+
+.word-column {
+    width: 160px;
+}
+
+.word-column.white {
+    background: #f5f6f6;
+}
+
+.word-column.black {
+    background: #afbbca;
+}
+
+.logs-pane {
+    margin-top: 10px;
+}
+
+.word {
+    padding: 3px;
+}
+
+.word-input {
+    width: 150px;
+}
+
+.round-table-row {
+    display: flex;
+}
+
+.round-row {
+    display: flex;
 }

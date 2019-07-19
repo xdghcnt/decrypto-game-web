@@ -11,7 +11,7 @@ function init(wsServer, path) {
 
     let defaultCodeWords, engCodeWords;
     fs.readFile(`${__dirname}/words.json`, "utf8", function (err, words) {
-        defaultCodeWords = JSON.parse(words)[1];
+        defaultCodeWords = JSON.parse(words)[0];
         fs.readFile(`${registry.config.appDir || __dirname}/moderated-words.json`, "utf8", function (err, words) {
             if (words) {
                 defaultCodeWords = JSON.parse(words)[1];
@@ -116,6 +116,8 @@ function init(wsServer, path) {
                         send(user, "player-state", state.white);
                     } else if (room.blackSpectators.has(user)) {
                         send(user, "player-state", state.black);
+                    } else {
+                        send(user, "player-state", {});
                     }
                 },
                 updateState = () => [...room.onlinePlayers].forEach(sendState),
@@ -132,7 +134,7 @@ function init(wsServer, path) {
                             room.paused = false;
                         shuffleArray(defaultCodeWords);
                         state.black.words = defaultCodeWords.slice(0, 4);
-                        state.white.words = defaultCodeWords.slice(0, 4);
+                        state.white.words = defaultCodeWords.slice(4, 8);
                         startRound();
                     }
                 },
@@ -147,8 +149,10 @@ function init(wsServer, path) {
                     room.readyPlayers.clear();
                     state.black.code = shuffleArray([1, 2, 3, 4]).slice(0, 3);
                     state.white.code = shuffleArray([1, 2, 3, 4]).slice(0, 3);
+                    state.black.codeWords = [];
+                    state.white.codeWords = [];
                     room.blackCodeWords = [];
-                    room.whiteCOdeWords = [];
+                    room.whiteCodeWords = [];
                     startTimer();
                     update();
                     updateState();
@@ -156,6 +160,8 @@ function init(wsServer, path) {
                 startTeamPhase = () => {
                     room.phase = 2;
                     room.readyPlayers.clear();
+                    room.blackCodeWords = state.black.codeWords;
+                    room.whiteCodeWords = state.white.codeWords;
                     state.black.guesses = [];
                     state.white.guesses = [];
                     state.black.hackGuesses = [];
@@ -184,7 +190,7 @@ function init(wsServer, path) {
                             code: state.black.code
                         },
                         white: {
-                            codeWords: room.whiteCOdeWords,
+                            codeWords: room.whiteCodeWords,
                             try: calcTry("white"),
                             hackTry: calcTry("white", true),
                             code: state.white.code
@@ -330,12 +336,12 @@ function init(wsServer, path) {
                         send([...room[color]], "highlight", data);
                     }
                 },
-                "set-code-words": (user, codeWords) => {
-                    if (room.phase === 1 && codeWords && codeWords.length === 3
+                "set-code-word": (user, index, word) => {
+                    if (room.phase === 1 && ~[0, 1, 2].indexOf(index) && word
                         && !room.readyPlayers.has(user)
                         && (room.blackMaster === user || room.whiteMaster === user)) {
                         const color = room.blackMaster === user ? "black" : "white";
-                        state[color].codeWords = codeWords;
+                        state[color].codeWords[index] = word;
                         updateState();
                     }
                 },
@@ -439,7 +445,7 @@ function init(wsServer, path) {
                     update();
                 },
                 "set-time": (user, type, value) => {
-                    if (user === room.hos3tId && ~["master", "team"].indexOf(type) && !isNaN(value) && value >= 1)
+                    if (user === room.hostId && ~["master", "team"].indexOf(type) && !isNaN(value) && value >= 1)
                         room[`${type}Time`] = value;
                     update();
                 },

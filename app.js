@@ -1,6 +1,4 @@
 const
-    wsServer = new (require("ws-server-engine"))({
-        maxRoomsPerIP: 2
-    }),
+    wsServer = new (require("ws-server-engine"))(),
     game = require("./module");
 game(wsServer, "/bg/decrypto");

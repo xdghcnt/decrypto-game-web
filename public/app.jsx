@@ -132,7 +132,9 @@ class WordsInputPane extends React.Component {
                     {[0, 1, 2].map((index) =>
                         <div className="word-row">
                             <div className="word-input">
-                                {data[`${color}CodeWords`][index] || "-"}
+                                {data.phase === 1 && (data[`${color}Master`] === data.userId)
+                                    ? <input onChange={(evt) => game.handleChangCodeWord(index, evt.target.value)}/>
+                                    : (data[`${color}CodeWords`] || "-")}
                             </div>
                             <div className="code-input">
                                 {codes[index] || "-"}
@@ -303,6 +305,10 @@ class Game extends React.Component {
         this.debouncedEmit("set-time", type, value || 1);
     }
 
+    handleChangCodeWord(index, word) {
+        this.debouncedEmit("set-code-word", index, word);
+    }
+
     constructor() {
         super();
         this.state = {
@@ -388,7 +394,7 @@ class Game extends React.Component {
                             {data.rounds.map((round) =>
                                 <div className="round-row">
                                     <RoundTable data={data} round={round[playerTeam]} color={playerTeam}/>
-                                    <RoundTable data={data} round={round[enemyTeam]} color={enemyTeam} isEnemy={trye}/>
+                                    <RoundTable data={data} round={round[enemyTeam]} color={enemyTeam} isEnemy={true}/>
                                 </div>
                             )}
                         </div>
