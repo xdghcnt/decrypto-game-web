@@ -1,4 +1,13 @@
 @font-face {
+    font-family: 'squarefontregular';
+    src: url('media/square-webfont.woff2') format('woff2'),
+    url('media/square-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@font-face {
     font-family: 'rodchenkocttregular';
     src: url('media/rodchenkoctt_allfont.ru-webfont.woff2') format('woff2'),
     url('media/rodchenkoctt_allfont.ru-webfont.woff') format('woff');
@@ -186,24 +195,38 @@ html {
     height: 200px;
     background-size: contain;
     background-repeat: no-repeat;
+    font-family: squarefontregular, sans-serif;
+    font-size: 60px;
+    color: #ff6969;
+    box-sizing: border-box;
+    text-align: center;
+    padding-top: 49px;
 }
 
 .black .code {
     background-image: url(media/code_back_black.png);
+    padding-top: 44px;
+}
+
+.black .code.active {
+    background-image: url(media/code_black.png);
 }
 
 .white .code {
     background-image: url(media/code_back_white.png);
 }
 
+.white .code.active {
+    background-image: url(media/code_white.png);
+}
+
 .stand {
     display: flex;
     width: 800px;
-    height: 310px;
+    height: 287px;
     background-size: contain;
     background-repeat: no-repeat;
-    padding: 0 4.2%;
-    margin: 0 10px;
+    padding: 0 51px;
     box-sizing: border-box;
 }
 
@@ -239,7 +262,7 @@ html {
     margin-top: 6px;
 }
 
-@media (max-width: 965px) {
+@media (max-width: 1200px) {
     .stand {
         display: none;
     }
@@ -247,15 +270,13 @@ html {
 
 .stand-code {
     width: 25%;
-    padding: 7.1% 3.5%;
-    color: white;
+    color: #ff6969;
     font-size: 20px;
     text-align: center;
     font-family: rodchenkocttregular, sans-serif;
-    height: 17%;
     display: flex;
-    align-items: center;
     justify-content: center;
+    padding-top: 72px;
 }
 
 .word-row {
@@ -321,5 +342,29 @@ html {
 }
 
 .round-row {
+    display: flex;
+}
+
+.ready-button {
+    width: 200px;
+    background: #f0efec;
+    text-align: center;
+    margin: auto;
+    margin-top: 10px;
+    cursor: pointer;
+    padding: 5px;
+    user-select: none;
+}
+
+.words-input {
+    display: flex;
+}
+
+.add-guess {
+    display: flex;
+    flex-flow: column;
+}
+
+.guess-cols {
     display: flex;
 }

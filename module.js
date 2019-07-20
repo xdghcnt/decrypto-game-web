@@ -54,8 +54,8 @@ function init(wsServer, path) {
                     teamsLocked: false,
                     teamWin: null,
                     timed: true,
-                    masterTime: 60,
-                    teamTime: 60,
+                    masterTime: testMode ? 5 : 60,
+                    teamTime: testMode ? 5 : 60,
                     time: null,
                     paused: true,
                     readyPlayers: new JSONSet(),
@@ -345,26 +345,21 @@ function init(wsServer, path) {
                         updateState();
                     }
                 },
-                "set-master-ready": (user) => {
-                    if (room.phase === 1 && !room.readyPlayers.has(user) && (room.blackMaster === user || room.whiteMaster === user)) {
-                        room.readyPlayers.add(user);
-                        if (room.readyPlayers.size === 1)
-                            if (room.timed && room.time > (30 * 1000))
-                                room.time = 30 * 1000;
-                            else
-                                startTeamPhase();
-                        update();
-                    }
-                },
                 "add-guess": (user, code, isHack) => {
-                    if (room.phase === 1 && (room.black.has(user) || room.white.has(user))) {
-                        const color = room.black.has(user) ? "black" : "white";
-                        state[color][!isHack ? "guesses" : "hackGuesses"].push({
-                            code,
-                            player: user,
-                            votes: []
-                        });
-                        updateState();
+                    if (room.phase === 2 && (room.black.has(user) || room.white.has(user))
+                        && code && code.every && code.every((number) => ~[1, 2, 3, 4].indexOf(number))
+                        && (new Set(code)).size === code.length) {
+                        const
+                            color = room.black.has(user) ? "black" : "white",
+                            guessList = state[color][!isHack ? "guesses" : "hackGuesses"];
+                        if (guessList.every((item) => item.code.join() !== code.join())) {
+                            guessList.push({
+                                code,
+                                player: user,
+                                votes: []
+                            });
+                            updateState();
+                        }
                     }
                 },
                 "remove-guess": (user, index, isHack) => {
@@ -378,7 +373,7 @@ function init(wsServer, path) {
                     }
                 },
                 "vote-guess": (user, index, isHack) => {
-                    if (room.phase === 1 && (room.black.has(user) || room.white.has(user))) {
+                    if (room.phase === 2 && (room.black.has(user) || room.white.has(user))) {
                         const
                             color = room.black.has(user) ? "black" : "white",
                             guesses = state[color][!isHack ? "guesses" : "hackGuesses"];
@@ -404,7 +399,15 @@ function init(wsServer, path) {
                     }
                 },
                 "toggle-ready": (user) => {
-                    if (room.phase === 1 && (room.black.has(user) || room.white.has(user))) {
+                    if (room.phase === 1 && !room.readyPlayers.has(user) && (room.blackMaster === user || room.whiteMaster === user)) {
+                        room.readyPlayers.add(user);
+                        if (room.readyPlayers.size === 1)
+                            if (room.timed && room.time > (30 * 1000))
+                                room.time = 30 * 1000;
+                            else
+                                startTeamPhase();
+                        update();
+                    } else if (room.phase === 2 && (room.black.has(user) || room.white.has(user))) {
                         if (room.readyPlayers.has(user))
                             room.readyPlayers.delete(user);
                         else
@@ -486,7 +489,7 @@ function init(wsServer, path) {
                     sendState(playerId);
                 },
                 "players-join": (user, color) => {
-                    if (!room.teamsLocked && ~["white", "black"].indexOf(color)) {
+                    if (!room.teamsLocked && ~["white", "black"].indexOf(color) && !room[color].has(user)) {
                         leaveTeams(user);
                         room[color].add(user);
                         update();

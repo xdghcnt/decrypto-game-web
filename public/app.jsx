@@ -72,13 +72,15 @@ class Team extends React.Component {
         const
             data = this.props.data,
             color = this.props.color,
-            game = this.props.game;
+            playerTeam = this.props.playerTeam,
+            game = this.props.game,
+            showCode = playerTeam && (data.userId === data.blackMaster || data.userId === data.whiteMaster);
         return (
             <div className={cs("team", color)}>
                 <div className={cs("code", {
-                    "active": data.userId === data.blackMaster
+                    "active": showCode
                 })}>
-                    {data.player.code}
+                    {showCode ? data.player.code.join(".") : ""}
                 </div>
                 <div className="players">
                     {data[color].map((id) => <Player id={id} data={data} game={game}/>)}
@@ -133,8 +135,9 @@ class WordsInputPane extends React.Component {
                         <div className="word-row">
                             <div className="word-input">
                                 {data.phase === 1 && (data[`${color}Master`] === data.userId)
-                                    ? <input onChange={(evt) => game.handleChangCodeWord(index, evt.target.value)}/>
-                                    : (data[`${color}CodeWords`] || "-")}
+                                    ? <input onChange={(evt) => game.handleChangCodeWord(index, evt.target.value)}
+                                             defaultValue={data.player.codeWords && data.player.codeWords[index]}/>
+                                    : ((data[`${color}CodeWords`] && data[`${color}CodeWords`][index]) || "-")}
                             </div>
                             <div className="code-input">
                                 {codes[index] || "-"}
@@ -143,8 +146,8 @@ class WordsInputPane extends React.Component {
                     )}
                 </div>
                 <div className="guess-cols">
-                    {(data.player[!hack ? "guesses" : "hackGuesses"] || []).map((guess) =>
-                        <div className="guess">
+                    {(data.player[!hack ? "guesses" : "hackGuesses"] || []).map((guess, index) =>
+                        <div className="guess" onClick={(evt) => game.toggleVoteGuess(index, hack)}>
                             {guess.code.map((code) => <div className="guess-code">
                                 {code}
                             </div>)}
@@ -154,9 +157,20 @@ class WordsInputPane extends React.Component {
                             <div className="guess-player">{guess.player}</div>
                         </div>
                     )}
-                    {data.phase === 2
-                        ? <div className="add-vote">
-                            +
+                    {(data.phase === 2 && (data[`${color}Master`] !== data.userId || hack))
+                        ? <div className="add-guess">
+                            {[0, 1, 2].map((index) =>
+                                <input id={`guess-add-${index}-${hack ? "hack" : ""}`}
+                                       className="add-guess-input"
+                                       type="number"
+                                       defaultValue={1}
+                                       min="1"
+                                       max="4"
+                                       onChange={evt => !isNaN(evt.target.valueAsNumber)}
+                                />)}
+                            <div className="add-guess-button" onClick={() => game.handleClickAddGuess(hack)}>
+                                +
+                            </div>
                         </div>
                         : ""}
                 </div>
@@ -309,6 +323,19 @@ class Game extends React.Component {
         this.debouncedEmit("set-code-word", index, word);
     }
 
+    handleClickReady() {
+        this.socket.emit("toggle-ready");
+    }
+
+    handleClickAddGuess(hack) {
+        this.socket.emit("add-guess", [0, 1, 2].map((index) =>
+            document.getElementById(`guess-add-${index}-${hack ? "hack" : ""}`).valueAsNumber), hack);
+    }
+
+    toggleVoteGuess(index, hack) {
+        this.socket.emit("vote-guess", index, hack);
+    }
+
     constructor() {
         super();
         this.state = {
@@ -329,6 +356,7 @@ class Game extends React.Component {
                 isHost = data.hostId === data.userId,
                 parentDir = location.pathname.match(/(.+?)\//)[1],
                 notEnoughPlayers = data.phase === 0 && (data.black.length < 2 || data.white.length < 2),
+                isSpectator = ~data.spectators.indexOf(user),
                 playerTeam = ~data.black.indexOf(user) ? "black" : "white",
                 enemyTeam = playerTeam === "white" ? "black" : "white",
                 teamWordCodesList = [[], [], [], []],
@@ -353,14 +381,16 @@ class Game extends React.Component {
                         [`${this.state.teamWin}-win`]: this.state.teamWin
                     })}>
                     <div className="main-row">
-                        <Team color="black" data={data} game={game}/>
+                        <Team color="black" data={data} game={game}
+                              playerTeam={!isSpectator && playerTeam === "black"}/>
                         <div className={cs("stand", playerTeam)}>
                             {[0, 1, 2, 3].map((index) => <div
                                 className={cs("stand-code", `stand-code-${index}`)}>
-                                {(data.player.words && data.player.words[index]) || "?"}
+                                <span>{(data.player.words && hyphenate(data.player.words[index])) || "?"}</span>
                             </div>)}
                         </div>
-                        <Team color="white" data={data} game={game}/>
+                        <Team color="white" data={data} game={game}
+                              playerTeam={!isSpectator && playerTeam === "white"}/>
                     </div>
                     <div className="timer">{data.timed ? <span className="timer-time">
                                     {(new Date(data.time > 0
@@ -370,6 +400,9 @@ class Game extends React.Component {
                     <div className="main-pane">
                         <WordsInputPane data={data} game={game} color={playerTeam} codes={teamCodes}/>
                         <WordsInputPane data={data} game={game} color={enemyTeam} codes={enemyCodes} hack={true}/>
+                    </div>
+                    <div className="ready-button" onClick={() => this.handleClickReady()}>
+                        Ready
                     </div>
                     <div className="logs-pane">
                         <div className="words-section">
