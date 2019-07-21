@@ -336,6 +336,11 @@ class Game extends React.Component {
         this.socket.emit("vote-guess", index, hack);
     }
 
+
+    handleChangeWordGuess(index, guess) {
+        this.debouncedEmit("set-word-guess", index, guess);
+    }
+
     constructor() {
         super();
         this.state = {
@@ -356,7 +361,7 @@ class Game extends React.Component {
                 isHost = data.hostId === data.userId,
                 parentDir = location.pathname.match(/(.+?)\//)[1],
                 notEnoughPlayers = data.phase === 0 && (data.black.length < 2 || data.white.length < 2),
-                isSpectator = ~data.spectators.indexOf(user),
+                isSpectator = !!~data.spectators.indexOf(user),
                 playerTeam = ~data.black.indexOf(user) ? "black" : "white",
                 enemyTeam = playerTeam === "white" ? "black" : "white",
                 teamWordCodesList = [[], [], [], []],
@@ -401,14 +406,19 @@ class Game extends React.Component {
                         <WordsInputPane data={data} game={game} color={playerTeam} codes={teamCodes}/>
                         <WordsInputPane data={data} game={game} color={enemyTeam} codes={enemyCodes} hack={true}/>
                     </div>
-                    <div className="ready-button" onClick={() => this.handleClickReady()}>
-                        Ready
-                    </div>
+                    {!isSpectator && (data.phase === 2
+                        || (data.phase === 1 && data[`${playerTeam}Master`] === data.userId && !~data.readyPlayers.indexOf(data.userId)))
+                        ? (<div className="ready-button" onClick={() => this.handleClickReady()}>
+                            Ready
+                        </div>)
+                        : ""}
                     <div className="logs-pane">
                         <div className="words-section">
                             {[0, 1, 2, 3].map((index) =>
                                 <div className={cs("word-column", playerTeam)}>
-                                    <div className="word">{index}</div>
+                                    <div className="word">{index}
+                                        {(data.player.words && data.player.words[index]) || "?"}
+                                    </div>
                                     <div className="word-codes-list">{teamWordCodesList[index].map((word) =>
                                         <div className="word-code-list-item">{word}</div>
                                     )}</div>
@@ -416,7 +426,14 @@ class Game extends React.Component {
                             )}
                             {[0, 1, 2, 3].map((index) =>
                                 <div className={cs("word-column", enemyTeam)}>
-                                    <div className="word">{index}</div>
+                                    <div className="word">{index}
+                                        {(!isSpectator && ~[1, 2].indexOf(data.phase) && data.player.wordGuesses)
+                                            ? (<input
+                                                onChange={(evt) => game.handleChangeWordGuess(index, evt.target.value)}
+                                                defaultValue={data.player.wordGuesses[index]}/>)
+                                            : (data.player.wordGuesses && data.player.wordGuesses[index]) || "?"}
+
+                                    </div>
                                     <div className="word-codes-list">{enemyWordCodesList[index].map((word) =>
                                         <div className="word-code-list-item">{word}</div>
                                     )}</div>

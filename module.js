@@ -45,6 +45,8 @@ function init(wsServer, path) {
                     whiteWords: [],
                     blackCodeWords: [],
                     whiteCodeWords: [],
+                    blackWordGuesses: [],
+                    whiteWordGuesses: [],
                     blackMaster: null,
                     whiteMaster: null,
                     blackFailCount: 0,
@@ -135,6 +137,8 @@ function init(wsServer, path) {
                         shuffleArray(defaultCodeWords);
                         state.black.words = defaultCodeWords.slice(0, 4);
                         state.white.words = defaultCodeWords.slice(4, 8);
+                        state.black.wordGuesses = [];
+                        state.white.wordGuesses = [];
                         startRound();
                     }
                 },
@@ -249,6 +253,8 @@ function init(wsServer, path) {
                     }
                     room.blackWords = state.black.words;
                     room.whiteWords = state.white.words;
+                    room.blackWordGuesses = state.black.wordGuesses;
+                    room.whiteWordGuesses = state.white.wordGuesses;
                     update();
                     updateState();
                 },
@@ -392,7 +398,7 @@ function init(wsServer, path) {
                     }
                 },
                 "set-word-guess": (user, index, guess) => {
-                    if (room.phase === 1 && (room.black.has(user) || room.white.has(user))) {
+                    if (~[1,2].indexOf(room.phase) && (room.black.has(user) || room.white.has(user))) {
                         const color = room.black.has(user) ? "black" : "white";
                         state[color].wordGuesses[index] = guess;
                         updateState();
@@ -457,7 +463,6 @@ function init(wsServer, path) {
                         room.playerNames[user] = value.substr && value.substr(0, 60);
                     update();
                 },
-
                 "change-color": (user) => {
                     room.playerColors[user] = randomColor();
                     update();
