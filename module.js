@@ -70,12 +70,13 @@ function init(wsServer, path) {
                     phase: 0,
                     testMode
                 };
-            if (testMode)
+            if (testMode) {
                 [1, 2, 3, 4, 5, 6].forEach((ind) => {
                     room.playerNames[`kek${ind}`] = `kek${ind}`;
                 });
-            room.black = new JSONSet(["kek1", "kek2", "kek3"]);
-            room.white = new JSONSet(["kek4", "kek5", "kek6"]);
+                room.black = new JSONSet(["kek1", "kek2", "kek3"]);
+                room.white = new JSONSet(["kek4", "kek5", "kek6"]);
+            }
             this.room = room;
             this.lastInteraction = new Date();
             const state = {black: {}, white: {}};
@@ -184,7 +185,7 @@ function init(wsServer, path) {
                     else
                         return [];
                 },
-                isEqualCodes = (codeA, codeB) => codeA.every((word, index) => word === codeB[index]),
+                isEqualCodes = (codeA, codeB) => codeA.length && codeB.length && codeA.every((word, index) => word === codeB[index]),
                 endRound = () => {
                     const round = {
                         black: {
@@ -398,7 +399,7 @@ function init(wsServer, path) {
                     }
                 },
                 "set-word-guess": (user, index, guess) => {
-                    if (~[1,2].indexOf(room.phase) && (room.black.has(user) || room.white.has(user))) {
+                    if (~[1, 2].indexOf(room.phase) && (room.black.has(user) || room.white.has(user))) {
                         const color = room.black.has(user) ? "black" : "white";
                         state[color].wordGuesses[index] = guess;
                         updateState();

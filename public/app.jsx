@@ -94,6 +94,20 @@ class Team extends React.Component {
                         </div>
                         : ""}
                 </div>
+                {new Array(data[`${color}FailCount`]).fill().map((it, index) => <div
+                    style={{
+                        top: game.getTokenParams("fail", "top", index, color),
+                        left: game.getTokenParams("fail", "left", index, color),
+                        transform: game.getTokenParams("fail", "transform", index, color)
+                    }}
+                    className={cs("token", "fail-token", `fail-token-${index}`)}/>)}
+                {new Array(data[`${color}HackCount`]).fill().map((it, index) => <div
+                    style={{
+                        top: game.getTokenParams("hack", "top", index, color),
+                        left: game.getTokenParams("hack", "left", index, color),
+                        transform: game.getTokenParams("fail", "transform", index, color)
+                    }}
+                    className={cs("token", "hack-token", `hack-token-${index}`)}/>)}
             </div>
         );
     }
@@ -260,6 +274,29 @@ class Game extends React.Component {
         this.tapSound.volume = 0.3;
         window.hyphenate = createHyphenator(hyphenationPatternsRu);
         window.hyphenateEn = createHyphenator(hyphenationPatternsEnUs);
+        this.tokenParams = {};
+        this.generateTokenParams();
+    }
+
+    generateTokenParams() {
+        const getRandomInt = (max) => {
+            return Math.floor(Math.random() * Math.floor(max));
+        };
+        [0, 1].forEach((index) => {
+            ["black", "white"].forEach((color) => {
+                ["fail", "hack"].forEach((kind) => {
+                    this.tokenParams[`${index}${color}${kind}`] = {
+                        left: `${getRandomInt(150)}px`,
+                        top: `${getRandomInt(147)}px`,
+                        transform: `rotate(${getRandomInt(360)})deg`
+                    };
+                });
+            });
+        });
+    }
+
+    getTokenParams(kind, param, index, color) {
+        return this.tokenParams[`${index}${color}${kind}`][param];
     }
 
     debouncedEmit(event, data1, data2) {
@@ -345,7 +382,10 @@ class Game extends React.Component {
     }
 
     handleClickReady() {
-        this.socket.emit("toggle-ready");
+        if (this.state.phase === 0)
+            this.handleClickStart();
+        else
+            this.socket.emit("toggle-ready");
     }
 
     handleClickAddGuess(hack) {
@@ -407,6 +447,25 @@ class Game extends React.Component {
                 enemyWordCodesList = [[], [], [], []],
                 teamCodes = this.calcTry(playerTeam),
                 enemyCodes = this.calcTry(playerTeam, true);
+            let readyButtonText = "";
+            if (data.teamWin === "tie")
+                readyButtonText = "Tie";
+            else if (data.teamWin)
+                readyButtonText = `${data.teamWin} wins`;
+            else if (data.phase === 0 && !notEnoughPlayers && isHost)
+                readyButtonText = "Start";
+            else if (data.phase === 0 && !notEnoughPlayers)
+                readyButtonText = "Host can start";
+            else if (data.phase === 0)
+                readyButtonText = "Not enough players";
+            else if (data.phase === 1 && data[`${playerTeam}Master`] === data.userId && !~data.readyPlayers.indexOf(data.userId))
+                readyButtonText = "Ready";
+            else if (data.phase === 2 && !isSpectator)
+                readyButtonText = "Ready";
+            else if (data.phase === 1)
+                readyButtonText = "Encoding";
+            else if (data.phase === 2)
+                readyButtonText = "Decoding";
             data.rounds.forEach((round) => {
                 round[playerTeam].code.forEach((codeItem) => {
                     teamWordCodesList[codeItem - 1].push(round[playerTeam].codeWords[codeItem - 1]);
@@ -445,24 +504,23 @@ class Game extends React.Component {
                               playerTeam={!isSpectator && playerTeam === "white"}/>
                     </div>
                     <div className="timer">{data.timed ? <span className="timer-time">
-                                    {(new Date(data.time > 0
-                                        ? data.time
-                                        : data.masterTime * 1000)).toUTCString().match(/(\d\d:\d\d )/)[0].trim()}
+                                    {(new Date(!data.teamWin
+                                        ? (data.time > 0
+                                            ? data.time
+                                            : data.masterTime * 1000)
+                                        : 0)).toUTCString().match(/(\d\d:\d\d )/)[0].trim()}
                                 </span> : ""}</div>
                     <div className="main-pane">
                         <WordsInputPane data={data} game={game} color={playerTeam} codes={teamCodes}/>
                         <WordsInputPane data={data} game={game} color={enemyTeam} codes={enemyCodes} hack={true}/>
                     </div>
-                    {!isSpectator && (data.phase === 2
-                        || (data.phase === 1 && data[`${playerTeam}Master`] === data.userId && !~data.readyPlayers.indexOf(data.userId)))
-                        ? (<div className="ready-button" onClick={() => this.handleClickReady()}>
-                            Ready
-                            <div className="ready-markers">
-                                {data.readyPlayers.filter((item) => ~data[playerTeam].indexOf(item)).map((playerId) =>
-                                    <div className="player-color" style={{background: data.playerColors[playerId]}}/>)}
-                            </div>
-                        </div>)
-                        : ""}
+                    <div className="ready-button" onClick={() => this.handleClickReady()}>
+                        {readyButtonText}
+                        <div className="ready-markers">
+                            {data.readyPlayers.filter((item) => ~data[playerTeam].indexOf(item)).map((playerId) =>
+                                <div className="player-color" style={{background: data.playerColors[playerId]}}/>)}
+                        </div>
+                    </div>
                     <div className="words-section">
                         <div className="words-column-group">
                             {[0, 1, 2, 3].map((index) =>

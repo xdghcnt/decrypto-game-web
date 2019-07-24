@@ -162,10 +162,17 @@ body {
     display: inline-block;
     padding: 6px;
     cursor: pointer;
-    background: rgba(255, 252, 245, 0.58);
+    background: rgb(220, 220, 220);
     user-select: none;
     white-space: nowrap;
     height: 20px;
+    box-shadow: 0 0 4px 1px black;
+    opacity: 0.7;
+}
+
+
+.spectators:hover {
+    opacity: 1;
 }
 
 .spectators .player {
@@ -173,6 +180,7 @@ body {
     margin: 0 4px;
     padding: 0;
     width: auto;
+    background: transparent;
 }
 
 .spectators .player:hover .player-host-controls, .spectators .player:focus .player-host-controls {
@@ -187,7 +195,8 @@ body {
     display: flex;
     width: 100%;
     justify-content: space-evenly;
-    background: #8c8c8c;
+    background: #969696;
+    box-shadow: inset 0 0 8px 0 black;
 }
 
 .team {
@@ -195,8 +204,9 @@ body {
     flex-direction: column;
     background: #796565;
     padding: 10px 16px;
-    border-radius: 12px;
     align-items: center;
+    box-shadow: 0 -7px 7px 0 black;
+    position: relative;
 }
 
 .code {
@@ -253,7 +263,7 @@ body {
     font-size: 30px;
     font-family: digital-7_monomono, sans-serif;
     color: #ff0202;
-    padding: 17px;
+    padding-top: 17px;
 }
 
 .join-team-button {
@@ -274,6 +284,7 @@ body {
     .stand {
         display: none;
     }
+
     .main-row {
         background: #796565;
         justify-content: center;
@@ -281,6 +292,8 @@ body {
 
     .team {
         padding: 10px 6px;
+        background: transparent;
+        box-shadow: none;
     }
 }
 
@@ -365,7 +378,6 @@ body {
     justify-content: center;
     flex-wrap: wrap;
     background: #6f88a9;
-    padding: 15px;
 }
 
 .ready-button {
@@ -380,6 +392,7 @@ body {
     position: relative;
     color: white;
     font-family: squarefontregular, sans-serif;
+    text-transform: uppercase;
 }
 
 .add-guess {
@@ -417,6 +430,7 @@ body {
 
 .word-input input {
     width: 100%;
+    height: 20px;
 }
 
 .word {
@@ -589,7 +603,6 @@ body {
 
 .round-table {
     background: url(media/round_sheet.png);
-    box-shadow: black 0 0 5px -2px;
 }
 
 .round-table-code-word {
@@ -646,4 +659,28 @@ body {
 
 .round-table.white {
     background-color: #f9f9f9;
+}
+
+.token {
+    position: absolute;
+    height: 60px;
+    width: 60px;
+    border-radius: 30px;
+    background-size: contain;
+    opacity: 1.8;
+    box-shadow: 0 0 3px 0 black;
+}
+
+.fail-token {
+    background-image: url(media/miscommunication_token.png);
+    border: 1px solid white;
+}
+
+.hack-token {
+    background-image: url(media/interception_token.png);
+    border: 1px solid black;
+}
+
+.token:hover {
+    opacity: 0.3;
 }
