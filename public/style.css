@@ -668,7 +668,7 @@ body {
     border-radius: 30px;
     background-size: contain;
     opacity: 1.8;
-    box-shadow: 0 0 3px 0 black;
+    box-shadow: 0 0 3px 1px black;
 }
 
 .fail-token {

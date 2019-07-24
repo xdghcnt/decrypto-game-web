@@ -288,7 +288,7 @@ class Game extends React.Component {
                     this.tokenParams[`${index}${color}${kind}`] = {
                         left: `${getRandomInt(150)}px`,
                         top: `${getRandomInt(147)}px`,
-                        transform: `rotate(${getRandomInt(360)})deg`
+                        transform: `rotate(${getRandomInt(360)}deg)`
                     };
                 });
             });
