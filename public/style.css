@@ -246,19 +246,12 @@ html {
     padding: 12px;
 }
 
-.player.current:before {
-    content: "➜ ";
-    line-height: 0;
-}
-
 .join-team-button {
     cursor: pointer;
     text-decoration: underline;
 }
 
 .players {
-    border: 1px solid;
-    padding: 4px;
     margin-top: 6px;
 }
 
@@ -281,12 +274,15 @@ html {
 
 .word-row {
     display: flex;
-    padding: 5px;
+    padding: 5px 11px;
 }
 
 .word-rows {
     display: flex;
     flex-direction: column;
+    min-width: 205px;
+    max-width: 385px;
+    width: 50%;
 }
 
 .main-pane {
@@ -297,11 +293,12 @@ html {
 .words-input {
     min-width: 200px;
     width: 100%;
-    max-width: 500px;
+    max-width: 650px;
+    flex-wrap: wrap;
 }
 
 .words-input.white {
-    background: #f5f6f6;
+    background: #ececec;
 }
 
 .words-input.black {
@@ -334,7 +331,7 @@ html {
 }
 
 .word-input {
-    width: 150px;
+    width: 100%;
 }
 
 .round-table-row {
@@ -358,6 +355,7 @@ html {
 
 .words-input {
     display: flex;
+    box-shadow: inset black 0px 0px 4px -6px;
 }
 
 .add-guess {
@@ -367,4 +365,120 @@ html {
 
 .guess-cols {
     display: flex;
+    align-items: center;
+    text-align: center;
+    flex-wrap: wrap;
+}
+
+.master-icon {
+    font-size: 18px;
+}
+
+
+.player-color {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    margin-right: 7px;
+    border-radius: 25px;
+    margin-left: 4px;
+    min-width: 9px;
+}
+
+.player {
+    background: #f4f4f4;
+    padding: 3px 1px;
+    width: 200px;
+}
+
+.player:nth-child(even) {
+    background: white;
+}
+.word-input input {
+    width: 100%;
+}
+
+.word {
+    width: 10px;
+}
+
+.word input {
+    width: 100%;
+}
+
+.code-input {
+    border: 1px solid gainsboro;
+    padding: 0 8px;
+    text-align: center;
+}
+
+.empty-holder {
+    color: #494949;
+    font-style: italic;
+}
+
+.empty-holder {
+    color: #494949;
+    font-style: italic;
+}
+
+.white .word-row {
+    background: white;
+}
+
+.black .word-row {
+    background: #bfc8d1;
+}
+
+.white .word-row:nth-child(even) {
+    background: #f7f7f7;
+}
+
+.black .word-row:nth-child(even) {
+    background: #b0bbc8;
+}
+
+.add-guess input {
+    width: 30px;
+}
+
+.guess {
+    padding: 6px 11px;
+    margin: 7px;
+    line-height: 21px;
+    position: relative;
+}
+
+.add-guess-button {
+    cursor: pointer;
+    color: #45556a;
+}
+
+.remove-guess {
+    font-size: 12px;
+    position: absolute;
+    left: -5px;
+    top: -4px;
+    border-radius: 25px;
+    color: #f0fcfe;
+    padding: 3px 2px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.guess-vote {
+    font-size: 12px;
+    border-radius: 25px;
+    color: #f0fcfe;
+    padding: 3px 2px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.guess-vote-list {
+    position: absolute;
+    bottom: -7px;
+    right: -7px;
+    display: flex;
+    flex-flow: column;
 }

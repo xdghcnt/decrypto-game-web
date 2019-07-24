@@ -26,14 +26,16 @@ class Player extends React.Component {
         return (
             <div className={cs("player", {
                 offline: !~data.onlinePlayers.indexOf(id),
-                self: id === data.userId,
-                current: data.whiteMaster === id || data.blackMaster === id
+                self: id === data.userId
             })}
                  onTouchStart={(e) => e.target.focus()}
                  data-playerId={id}>
                 <div className="player-color" style={{background: data.playerColors[id]}}
                      onClick={(evt) => !evt.stopPropagation() && (id === data.userId) && game.handleChangeColor()}/>
-                {data.playerNames[id]}
+                {data.playerNames[id]}&nbsp;
+                {(data.whiteMaster === id || data.blackMaster === id)
+                    ? <span className="material-icons master-icon" title="encoder">save</span>
+                    : ""}
                 {(~data.blackSlotPlayers.indexOf(id)) ? (
                     <span className="black-slot-button">&nbsp;{blackSlotButton}</span>
                 ) : ""}
@@ -99,13 +101,14 @@ class RoundTable extends React.Component {
             data = this.props.data,
             color = this.props.color,
             isEnemy = this.props.isEnemy,
-            round = this.props.round;
+            round = this.props.round,
+            emptyHolder = <span className="empty-holder">&lt;Empty&gt;</span>;
         return (
             <div className={cs("round-table", color)}>
                 {[0, 1, 2].map((index) =>
                     <div className="round-table-row">
                         <div className="round-table-code-word">
-                            {round.codeWords[index] || "-"}
+                            {round.codeWords[index] || emptyHolder}
                         </div>
                         <div className="round-table-code-try">
                             {(round[!isEnemy ? "try" : "hackTry"][index] || "-")}
@@ -127,7 +130,8 @@ class WordsInputPane extends React.Component {
             color = this.props.color,
             hack = this.props.hack,
             game = this.props.game,
-            codes = this.props.codes;
+            codes = this.props.codes,
+            emptyHolder = <span className="empty-holder">&lt;Empty&gt;</span>;
         return (
             <div className={cs("words-input", color)}>
                 <div className="word-rows">
@@ -137,7 +141,7 @@ class WordsInputPane extends React.Component {
                                 {data.phase === 1 && (data[`${color}Master`] === data.userId)
                                     ? <input onChange={(evt) => game.handleChangCodeWord(index, evt.target.value)}
                                              defaultValue={data.player.codeWords && data.player.codeWords[index]}/>
-                                    : ((data[`${color}CodeWords`] && data[`${color}CodeWords`][index]) || "-")}
+                                    : ((data[`${color}CodeWords`] && data[`${color}CodeWords`][index]) || emptyHolder)}
                             </div>
                             <div className="code-input">
                                 {codes[index] || "-"}
@@ -147,14 +151,24 @@ class WordsInputPane extends React.Component {
                 </div>
                 <div className="guess-cols">
                     {(data.player[!hack ? "guesses" : "hackGuesses"] || []).map((guess, index) =>
-                        <div className="guess" onClick={(evt) => game.toggleVoteGuess(index, hack)}>
+                        <div className="guess" style={{"background": `${data.playerColors[guess.player]}40`}}
+                             onClick={(evt) => game.toggleVoteGuess(index, hack)}>
                             {guess.code.map((code) => <div className="guess-code">
                                 {code}
                             </div>)}
-                            {guess.votes.map((vote) => <div className="guess-vote">
-                                {vote}
-                            </div>)}
-                            <div className="guess-player">{guess.player}</div>
+                            <div className="guess-vote-list">
+                                {guess.votes.map((vote) =>
+                                    <span onClick={(evt) => game.handleClickRemoveGuess(evt, index, hack)}
+                                          style={{"background": `${data.playerColors[vote]}a1`}}
+                                          className="guess-vote material-icons">check</span>
+                                )}
+
+                            </div>
+                            {guess.player === data.userId
+                                ? <span onClick={(evt) => game.handleClickRemoveGuess(evt, index, hack)}
+                                        style={{"background": `${data.playerColors[guess.player]}a1`}}
+                                        className="remove-guess material-icons">close</span>
+                                : ""}
                         </div>
                     )}
                     {(data.phase === 2 && (data[`${color}Master`] !== data.userId || hack))
@@ -169,7 +183,7 @@ class WordsInputPane extends React.Component {
                                        onChange={evt => !isNaN(evt.target.valueAsNumber)}
                                 />)}
                             <div className="add-guess-button" onClick={() => game.handleClickAddGuess(hack)}>
-                                +
+                                <span className="material-icons">add_box</span>
                             </div>
                         </div>
                         : ""}
@@ -334,6 +348,11 @@ class Game extends React.Component {
 
     toggleVoteGuess(index, hack) {
         this.socket.emit("vote-guess", index, hack);
+    }
+
+    handleClickRemoveGuess(evt, index, hack) {
+        evt.stopPropagation();
+        this.socket.emit("remove-guess", index, hack);
     }
 
 

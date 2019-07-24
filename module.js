@@ -369,7 +369,7 @@ function init(wsServer, path) {
                     }
                 },
                 "remove-guess": (user, index, isHack) => {
-                    if (room.phase === 1 && (room.black.has(user) || room.white.has(user))) {
+                    if (room.phase === 2 && (room.black.has(user) || room.white.has(user))) {
                         const
                             color = room.black.has(user) ? "black" : "white",
                             guesses = state[color][!isHack ? "guesses" : "hackGuesses"];
