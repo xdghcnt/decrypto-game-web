@@ -122,7 +122,11 @@ class RoundTable extends React.Component {
             color = this.props.color,
             round = this.props.round,
             roundNum = this.props.roundNum,
-            emptyHolder = <span className="empty-holder">&lt;Empty&gt;</span>;
+            isEnemy = this.props.isEnemy,
+            emptyHolder = <span className="empty-holder">&lt;Empty&gt;</span>,
+            isEqualCodes = (codeA, codeB) =>
+                codeA.length && codeB.length && codeA.every((word, index) => word === codeB[index]),
+            enemyTryFailed = isEnemy && !isEqualCodes(round.try, round.code);
         return (
             <div className={cs("round-table", color)}>
                 <div className="round-number">{`0${roundNum + 1}`}</div>
@@ -132,7 +136,7 @@ class RoundTable extends React.Component {
                             {round.codeWords[index] || emptyHolder}
                         </div>
                         <div className="round-table-code-try">
-                            {(round.try[index] || "-")}
+                            {(data.teamWin || !isEnemy || !enemyTryFailed) ? (round.try[index] || "-") : "?"}
                         </div>
                         <div className="round-table-code-hack-try">
                             {(data.rounds[roundNum][color === "white" ? "black" : "white"].hackTry[index] || "-")}
@@ -185,20 +189,21 @@ class WordsInputPane extends React.Component {
                             </div>)}
                             <div className="guess-vote-list">
                                 {guess.votes.map((vote) =>
-                                    <span onClick={(evt) => game.handleClickRemoveGuess(evt, index, hack)}
-                                          style={{"background": `${data.playerColors[vote]}a1`}}
+                                    <span style={{"background": `${data.playerColors[vote]}a1`}}
                                           className="guess-vote material-icons">check</span>
                                 )}
 
                             </div>
                             {guess.player === data.userId
-                                ? <span style={{"background": `${data.playerColors[guess.player]}a1`}}
-                                        className="remove-guess material-icons">close</span>
+                                ? <span
+                                    onClick={(evt) => game.handleClickRemoveGuess(evt, index, hack)}
+                                    style={{"background": `${data.playerColors[guess.player]}a1`}}
+                                    className="remove-guess material-icons">close</span>
                                 : ""}
                         </div>)
                         : <div className="guess guess-stub">?</div>
                 )}
-                {(data.phase === 2 && (data[`${color}Master`] !== data.userId || hack) && data.rounds.length)
+                {(data.phase === 2 && (data[`${color}Master`] !== data.userId || hack) && (data.rounds.length || !hack))
                     ? <div className="add-guess">
                         <div className="add-guess-button" onClick={() => game.handleClickAddGuess(hack)}>
                             <span className="material-icons">add_box</span>
@@ -447,9 +452,9 @@ class Game extends React.Component {
             const guesses = this.state.player[!hack ? "guesses" : "hackGuesses"];
             if (!guesses || guesses.length === 0 || guesses[0].stub)
                 return [];
-            const mostVoted = (guesses.slice()).sort((a, b) => b.votes.length - a.votes.length)[0];
-            if (mostVoted.votes.length === 1 || mostVoted.votes.length >= Math.ceil(this.state[team].length / 2))
-                return mostVoted.code;
+            const sorted = (guesses.slice()).sort((a, b) => b.votes.length - a.votes.length);
+            if (sorted[0].votes.length > sorted[1].votes.length)
+                return sorted[0].code;
             else
                 return [];
         } else return [];
@@ -607,7 +612,8 @@ class Game extends React.Component {
                             <div className="round-row">
                                 <RoundTable data={data} round={round[playerTeam]} roundNum={index}
                                             color={playerTeam}/>
-                                <RoundTable data={data} round={round[enemyTeam]} roundNum={index} color={enemyTeam}/>
+                                <RoundTable data={data} round={round[enemyTeam]} roundNum={index} color={enemyTeam}
+                                            isEnemy={true}/>
                             </div>
                         )}
                     </div>

@@ -179,9 +179,9 @@ function init(wsServer, path) {
                     const guesses = state[team][!isHack ? "guesses" : "hackGuesses"];
                     if (guesses.length === 0)
                         return [];
-                    const mostVoted = guesses.sort((a, b) => b.votes.length - a.votes.length)[0];
-                    if (mostVoted.votes.length === 1 || mostVoted.votes.length >= Math.ceil(room[team].size / 2))
-                        return mostVoted.code;
+                    const sorted = guesses.sort((a, b) => b.votes.length - a.votes.length)[0];
+                    if (sorted[0].votes.length > sorted[1].votes.length)
+                        return sorted[0].code;
                     else
                         return [];
                 },

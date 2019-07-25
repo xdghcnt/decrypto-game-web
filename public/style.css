@@ -339,7 +339,7 @@ body.dark-theme {
 }
 
 .word-column {
-    width: 176px;
+    width: 168px;
 }
 
 .word-column.white {
@@ -555,7 +555,7 @@ body.dark-theme {
 .word-number {
     margin-right: 0;
     margin-top: 2px;
-    width: 34px;
+    width: 35px;
     font-family: squarefontregular, sans-serif;
 }
 
@@ -654,6 +654,7 @@ body.dark-theme {
     opacity: 1.8;
     box-shadow: 0 0 3px 1px black;
     cursor: pointer;
+    transition: all 0.2s;
 }
 
 .fail-token {
