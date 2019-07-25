@@ -25,12 +25,17 @@
 
 }
 
-html {
+body {
     background: gainsboro;
+    margin: 0;
 }
 
-body {
-    margin: 0;
+body.dark-theme {
+    background: #484242;
+}
+
+.dark-theme .main-row {
+    background: #252525;
 }
 
 .player.self {
@@ -118,7 +123,6 @@ body {
     display: flex;
     flex-direction: row;
     align-items: center;
-    width: 100%;
 }
 
 .player-host-controls {
@@ -278,34 +282,19 @@ body {
 .players {
     margin-top: 6px;
     width: 176px;
-}
-
-@media (max-width: 1200px) {
-    .stand {
-        display: none;
-    }
-
-    .main-row {
-        background: #796565;
-        justify-content: center;
-    }
-
-    .team {
-        padding: 10px 6px;
-        background: transparent;
-        box-shadow: none;
-    }
+    box-shadow: 0 0 5px -1px black;
 }
 
 .stand-code {
     width: 25%;
     color: #ff6969;
-    font-size: 24px;
+    font-size: 22px;
     text-align: center;
     font-family: rodchenkocttregular, sans-serif;
     display: flex;
     justify-content: center;
-    padding-top: 70px;
+    padding-top: 72px;
+    text-transform: uppercase;
 }
 
 .word-row {
@@ -377,7 +366,6 @@ body {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    background: #6f88a9;
 }
 
 .ready-button {
@@ -592,8 +580,9 @@ body {
 }
 
 .word-code-list-item {
-    padding: 3px;
+    padding: 5px;
     text-align: left;
+    color: black;
 }
 
 .word-codes-list {
@@ -614,7 +603,7 @@ body {
 }
 
 .round-table {
-    background-size: 270px;
+    background-size: 297px;
     padding: 9px;
     padding-top: 23px;
     position: relative;
@@ -623,7 +612,7 @@ body {
 .round-table-code-try {
     width: 21px;
     text-align: center;
-    padding-top: 8px;
+    padding-top: 7px;
     margin-right: 4px;
 }
 
@@ -631,11 +620,6 @@ body {
     width: 22px;
     text-align: center;
     padding-top: 7px;
-}
-
-.rounds-section {
-    display: flex;
-    flex-flow: column;
 }
 
 .round-number {
@@ -647,7 +631,7 @@ body {
     color: #6f6c6f;
 }
 
-.main-pane, .words-section, .rounds-section {
+.main-pane, .words-section {
     margin-top: 16px;
     padding-top: 17px;
     border-top: 2px dotted #796565;
@@ -669,6 +653,7 @@ body {
     background-size: contain;
     opacity: 1.8;
     box-shadow: 0 0 3px 1px black;
+    cursor: pointer;
 }
 
 .fail-token {
@@ -681,6 +666,72 @@ body {
     border: 1px solid black;
 }
 
-.token:hover {
-    opacity: 0.3;
+.rounds-section {
+    display: flex;
+    flex-flow: column;
+    position: fixed;
+    padding: 5px;
+    background: #3b4858;
+    right: -600px;
+    transition: right 0.3s;
+    bottom: 0;
+}
+
+.round-section-button {
+    position: absolute;
+    left: -39px;
+    z-index: 1;
+    background: #3b4858;
+    color: white;
+    padding: 5px 5px;
+    cursor: pointer;
+    font-size: 30px;
+    bottom: 98px;
+}
+
+.rounds-section:hover {
+    right: 0;
+}
+
+.round-table-code-hack-try {
+    width: 21px;
+    text-align: center;
+    padding-top: 7px;
+    margin-right: 3px;
+}
+
+@media (max-width: 1200px) {
+    .stand {
+        display: none;
+    }
+
+    .main-row {
+        background: #796565;
+        justify-content: center;
+    }
+
+    .team {
+        padding: 10px 6px;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .rounds-section {
+        position: static;
+    }
+
+    .words-section {
+        margin-bottom: 16px;
+        padding-bottom: 17px;
+        border-bottom: 2px dotted #796565;
+    }
+}
+
+.guess-stub {
+    border: 1px dashed #796565;
+    padding: 5px 9px;
+    display: flex;
+    align-items: center;
+    color: #9a9a9a;
+    font-family: squarefontregular, sans-serif;
 }

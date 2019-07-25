@@ -82,7 +82,7 @@ class Team extends React.Component {
                 <div className={cs("code", {
                     "active": showCode
                 })}>
-                    {showCode ? data.player.code.join(".") : ""}
+                    {showCode ? data.player.code && data.player.code.join(".") : ""}
                 </div>
                 <div className="players">
                     {data[color].map((id) => <Player id={id} data={data} game={game}/>)}
@@ -95,6 +95,7 @@ class Team extends React.Component {
                         : ""}
                 </div>
                 {new Array(data[`${color}FailCount`]).fill().map((it, index) => <div
+                    onClick={() => game.handleClickToken(index, color, "fail")}
                     style={{
                         top: game.getTokenParams("fail", "top", index, color),
                         left: game.getTokenParams("fail", "left", index, color),
@@ -102,10 +103,11 @@ class Team extends React.Component {
                     }}
                     className={cs("token", "fail-token", `fail-token-${index}`)}/>)}
                 {new Array(data[`${color}HackCount`]).fill().map((it, index) => <div
+                    onClick={() => game.handleClickToken(index, color, "hack")}
                     style={{
                         top: game.getTokenParams("hack", "top", index, color),
                         left: game.getTokenParams("hack", "left", index, color),
-                        transform: game.getTokenParams("fail", "transform", index, color)
+                        transform: game.getTokenParams("hack", "transform", index, color)
                     }}
                     className={cs("token", "hack-token", `hack-token-${index}`)}/>)}
             </div>
@@ -118,7 +120,6 @@ class RoundTable extends React.Component {
         const
             data = this.props.data,
             color = this.props.color,
-            isEnemy = this.props.isEnemy,
             round = this.props.round,
             roundNum = this.props.roundNum,
             emptyHolder = <span className="empty-holder">&lt;Empty&gt;</span>;
@@ -131,7 +132,10 @@ class RoundTable extends React.Component {
                             {round.codeWords[index] || emptyHolder}
                         </div>
                         <div className="round-table-code-try">
-                            {(round[!isEnemy ? "try" : "hackTry"][index] || "-")}
+                            {(round.try[index] || "-")}
+                        </div>
+                        <div className="round-table-code-hack-try">
+                            {(data.rounds[roundNum][color === "white" ? "black" : "white"].hackTry[index] || "-")}
                         </div>
                         <div className="round-table-code">
                             {round.code[index] || "-"}
@@ -158,10 +162,12 @@ class WordsInputPane extends React.Component {
                     {[0, 1, 2].map((index) =>
                         <div className="word-row">
                             <div className="word-input">
-                                {data.phase === 1 && (data[`${color}Master`] === data.userId)
-                                    ? <input placeholder="<Input>"
-                                             onChange={(evt) => game.handleChangCodeWord(index, evt.target.value)}
-                                             defaultValue={data.player.codeWords && data.player.codeWords[index]}/>
+                                {(data.phase === 1 && data[`${color}Master`] === data.userId)
+                                    ? (!~data.readyPlayers.indexOf(data.userId)
+                                        ? (<input placeholder="<Input>"
+                                                  onChange={(evt) => game.handleChangCodeWord(index, evt.target.value)}
+                                                  defaultValue={data.player.codeWords && data.player.codeWords[index]}/>)
+                                        : data.player.codeWords[index])
                                     : ((data[`${color}CodeWords`] && data[`${color}CodeWords`][index]) || emptyHolder)}
                             </div>
                             <div className="code-input">
@@ -171,27 +177,28 @@ class WordsInputPane extends React.Component {
                     )}
                 </div>
                 {(data.player[!hack ? "guesses" : "hackGuesses"] || []).map((guess, index) =>
-                    <div className="guess" style={{"background": `${data.playerColors[guess.player]}40`}}
-                         onClick={(evt) => game.toggleVoteGuess(index, hack)}>
-                        {guess.code.map((code) => <div className="guess-code">
-                            {code}
-                        </div>)}
-                        <div className="guess-vote-list">
-                            {guess.votes.map((vote) =>
-                                <span onClick={(evt) => game.handleClickRemoveGuess(evt, index, hack)}
-                                      style={{"background": `${data.playerColors[vote]}a1`}}
-                                      className="guess-vote material-icons">check</span>
-                            )}
+                    !guess.stub
+                        ? (<div className="guess" style={{"background": `${data.playerColors[guess.player]}40`}}
+                                onClick={(evt) => game.toggleVoteGuess(index, hack)}>
+                            {guess.code.map((code) => <div className="guess-code">
+                                {code}
+                            </div>)}
+                            <div className="guess-vote-list">
+                                {guess.votes.map((vote) =>
+                                    <span onClick={(evt) => game.handleClickRemoveGuess(evt, index, hack)}
+                                          style={{"background": `${data.playerColors[vote]}a1`}}
+                                          className="guess-vote material-icons">check</span>
+                                )}
 
-                        </div>
-                        {guess.player === data.userId
-                            ? <span onClick={(evt) => game.handleClickRemoveGuess(evt, index, hack)}
-                                    style={{"background": `${data.playerColors[guess.player]}a1`}}
-                                    className="remove-guess material-icons">close</span>
-                            : ""}
-                    </div>
+                            </div>
+                            {guess.player === data.userId
+                                ? <span style={{"background": `${data.playerColors[guess.player]}a1`}}
+                                        className="remove-guess material-icons">close</span>
+                                : ""}
+                        </div>)
+                        : <div className="guess guess-stub">?</div>
                 )}
-                {(data.phase === 2 && (data[`${color}Master`] !== data.userId || hack))
+                {(data.phase === 2 && (data[`${color}Master`] !== data.userId || hack) && data.rounds.length)
                     ? <div className="add-guess">
                         <div className="add-guess-button" onClick={() => game.handleClickAddGuess(hack)}>
                             <span className="material-icons">add_box</span>
@@ -217,6 +224,8 @@ class WordsInputPane extends React.Component {
 class Game extends React.Component {
     componentDidMount() {
         const initArgs = {};
+        if (parseInt(localStorage.darkThemeDecrypto))
+            document.body.classList.add("dark-theme");
         if (!localStorage.decryptoUserId || !localStorage.decryptoUserToken) {
             while (!localStorage.userName)
                 localStorage.userName = prompt("Your name");
@@ -279,20 +288,35 @@ class Game extends React.Component {
     }
 
     generateTokenParams() {
-        const getRandomInt = (max) => {
-            return Math.floor(Math.random() * Math.floor(max));
-        };
         [0, 1].forEach((index) => {
             ["black", "white"].forEach((color) => {
                 ["fail", "hack"].forEach((kind) => {
-                    this.tokenParams[`${index}${color}${kind}`] = {
-                        left: `${getRandomInt(150)}px`,
-                        top: `${getRandomInt(147)}px`,
-                        transform: `rotate(${getRandomInt(360)}deg)`
-                    };
+                    this.tokenParams[`${index}${color}${kind}`] = this.getRandomParams();
                 });
             });
         });
+    }
+
+    handleClickToken(index, color, kind) {
+        this.tokenParams[`${index}${color}${kind}`] = this.getRandomParams();
+        this.setState(this.state);
+    }
+
+    getRandomParams() {
+        const getRandomInt = (max) => {
+            return Math.floor(Math.random() * Math.floor(max));
+        };
+        return {
+            left: `${getRandomInt(150)}px`,
+            top: `${getRandomInt(147)}px`,
+            transform: `rotate(${getRandomInt(360)}deg)`
+        };
+    }
+
+    handleToggleTheme() {
+        localStorage.darkThemeDecrypto = !parseInt(localStorage.darkThemeDecrypto) ? 1 : 0;
+        document.body.classList.toggle("dark-theme");
+        this.setState(Object.assign({}, this.state));
     }
 
     getTokenParams(kind, param, index, color) {
@@ -378,6 +402,8 @@ class Game extends React.Component {
     }
 
     handleChangCodeWord(index, word) {
+        this.state.player.codeWords[index] = word;
+        this.setState(this.state);
         this.debouncedEmit("set-code-word", index, word);
     }
 
@@ -404,6 +430,8 @@ class Game extends React.Component {
 
 
     handleChangeWordGuess(index, guess) {
+        this.state.player.wordGuesses[index] = guess;
+        this.setState(this.state);
         this.debouncedEmit("set-word-guess", index, guess);
     }
 
@@ -415,12 +443,12 @@ class Game extends React.Component {
     }
 
     calcTry(team, hack) {
-        if (!~this.state.spectators.indexOf(this.state.userId) && this.state.player.guesses) {
+        if (!~this.state.spectators.indexOf(this.state.userId) && this.state.player.guesses && (this.state[`${team}Master`] !== this.state.userId || hack)) {
             const guesses = this.state.player[!hack ? "guesses" : "hackGuesses"];
-            if (guesses.length === 0)
+            if (!guesses || guesses.length === 0 || guesses[0].stub)
                 return [];
             const mostVoted = (guesses.slice()).sort((a, b) => b.votes.length - a.votes.length)[0];
-            if (mostVoted.votes.length >= Math.ceil(this.state[team].length / 2))
+            if (mostVoted.votes.length === 1 || mostVoted.votes.length >= Math.ceil(this.state[team].length / 2))
                 return mostVoted.code;
             else
                 return [];
@@ -467,11 +495,11 @@ class Game extends React.Component {
             else if (data.phase === 2)
                 readyButtonText = "Decoding";
             data.rounds.forEach((round) => {
-                round[playerTeam].code.forEach((codeItem) => {
-                    teamWordCodesList[codeItem - 1].push(round[playerTeam].codeWords[codeItem - 1]);
+                round[playerTeam].code.forEach((codeItem, index) => {
+                    teamWordCodesList[codeItem - 1].push(round[playerTeam].codeWords[index]);
                 });
-                round[enemyTeam].code.forEach((codeItem) => {
-                    enemyWordCodesList[codeItem - 1].push(round[enemyTeam].codeWords[codeItem - 1]);
+                round[enemyTeam].code.forEach((codeItem, index) => {
+                    enemyWordCodesList[codeItem - 1].push(round[enemyTeam].codeWords[index]);
                 });
             });
             if (!data.paused) {
@@ -495,10 +523,11 @@ class Game extends React.Component {
                         <Team color="black" data={data} game={game}
                               playerTeam={!isSpectator && playerTeam === "black"}/>
                         <div className={cs("stand", playerTeam)}>
-                            {[0, 1, 2, 3].map((index) => <div
-                                className={cs("stand-code", `stand-code-${index}`)}>
-                                <span>{(data.player.words && hyphenate(data.player.words[index])) || "?"}</span>
-                            </div>)}
+                            {(data.player.words ? data.player.words.map((word, index) =>
+                                <div
+                                    className={cs("stand-code", `stand-code-${index}`)}>
+                                    <span>{hyphenate(word) || "?"}</span>
+                                </div>) : "")}
                         </div>
                         <Team color="white" data={data} game={game}
                               playerTeam={!isSpectator && playerTeam === "white"}/>
@@ -517,8 +546,8 @@ class Game extends React.Component {
                     <div className="ready-button" onClick={() => this.handleClickReady()}>
                         {readyButtonText}
                         <div className="ready-markers">
-                            {data.readyPlayers.filter((item) => ~data[playerTeam].indexOf(item)).map((playerId) =>
-                                <div className="player-color" style={{background: data.playerColors[playerId]}}/>)}
+                            {data.phase === 2 ? data.readyPlayers.filter((item) => ~data[playerTeam].indexOf(item)).map((playerId) =>
+                                <div className="player-color" style={{background: data.playerColors[playerId]}}/>) : ""}
                         </div>
                     </div>
                     <div className="words-section">
@@ -530,8 +559,8 @@ class Game extends React.Component {
                                             <i className="material-icons">vpn_key</i>
                                             {index + 1}
                                         </div>
-                                        {(data.player.words && hyphenate(data.player.words[index])) ||
-                                        <span className="empty-holder">&lt;Unknown&gt;</span>}
+                                        {(data.player.words && hyphenate(!data.teamWin ? data.player.words[index] : data[`${enemyTeam}WordGuesses`][index] || "")) ||
+                                        (!data.teamWin ? <span className="empty-holder">&lt;Unknown&gt;</span> : "")}
                                     </div>
                                     <div
                                         className="word-codes-list">{teamWordCodesList[index].length ? teamWordCodesList[index].map((word) =>
@@ -555,8 +584,8 @@ class Game extends React.Component {
                                             ? (<input
                                                 placeholder="<Unknown>"
                                                 onChange={(evt) => game.handleChangeWordGuess(index, evt.target.value)}
-                                                defaultValue={data.player.wordGuesses[index]}/>)
-                                            : (data.player.wordGuesses && data.player.wordGuesses[index]) ||
+                                                value={data.player.wordGuesses[index]}/>)
+                                            : (data.player.wordGuesses && hyphenate(!data.teamWin ? data.player.wordGuesses[index] : data[`${enemyTeam}Words`][index] || "")) ||
                                             <span className="empty-holder">&lt;Unknown&gt;</span>}
 
                                     </div>
@@ -571,12 +600,14 @@ class Game extends React.Component {
                         </div>
                     </div>
                     <div className="rounds-section">
+                        <div className="round-section-button material-icons">
+                            event_note
+                        </div>
                         {data.rounds.map((round, index) =>
                             <div className="round-row">
                                 <RoundTable data={data} round={round[playerTeam]} roundNum={index}
                                             color={playerTeam}/>
-                                <RoundTable data={data} round={round[enemyTeam]} roundNum={index} color={enemyTeam}
-                                            isEnemy={true}/>
+                                <RoundTable data={data} round={round[enemyTeam]} roundNum={index} color={enemyTeam}/>
                             </div>
                         )}
                     </div>
@@ -654,6 +685,11 @@ class Game extends React.Component {
                                       className="toggle-theme material-icons settings-button">volume_up</i>)
                                 : (<i onClick={() => this.handleToggleMuteSounds()}
                                       className="toggle-theme material-icons settings-button">volume_off</i>)}
+                            {!parseInt(localStorage.darkThemeDecrypto)
+                                ? (<i onClick={() => this.handleToggleTheme()}
+                                      className="toggle-theme material-icons settings-button">brightness_2</i>)
+                                : (<i onClick={() => this.handleToggleTheme()}
+                                      className="toggle-theme material-icons settings-button">wb_sunny</i>)}
                         </div>
                         <i className="settings-hover-button material-icons">settings</i>
                     </div>

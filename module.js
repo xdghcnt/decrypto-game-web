@@ -99,11 +99,11 @@ function init(wsServer, path) {
                 sendState = (user) => {
                     if (room.blackMaster === user) {
                         send(user, "player-state", Object.assign({}, state.black, {
-                            guesses: []
+                            guesses: state.black.guesses.map(() => ({stub: true}))
                         }));
                     } else if (room.whiteMaster === user) {
                         send(user, "player-state", Object.assign({}, state.white, {
-                            guesses: []
+                            guesses: state.white.guesses.map(() => ({stub: true}))
                         }));
                     } else if (room.black.has(user)) {
                         send(user, "player-state", Object.assign({}, state.black, {
@@ -138,8 +138,8 @@ function init(wsServer, path) {
                         shuffleArray(defaultCodeWords);
                         state.black.words = defaultCodeWords.slice(0, 4);
                         state.white.words = defaultCodeWords.slice(4, 8);
-                        state.black.wordGuesses = [];
-                        state.white.wordGuesses = [];
+                        state.black.wordGuesses = ["", "", "", ""];
+                        state.white.wordGuesses = ["", "", "", ""];
                         startRound();
                     }
                 },
@@ -158,6 +158,10 @@ function init(wsServer, path) {
                     state.white.codeWords = [];
                     room.blackCodeWords = [];
                     room.whiteCodeWords = [];
+                    state.black.guesses = [];
+                    state.white.guesses = [];
+                    state.black.hackGuesses = [];
+                    state.white.hackGuesses = [];
                     startTimer();
                     update();
                     updateState();
@@ -167,10 +171,6 @@ function init(wsServer, path) {
                     room.readyPlayers.clear();
                     room.blackCodeWords = state.black.codeWords;
                     room.whiteCodeWords = state.white.codeWords;
-                    state.black.guesses = [];
-                    state.white.guesses = [];
-                    state.black.hackGuesses = [];
-                    state.white.hackGuesses = [];
                     startTimer();
                     update();
                     updateState();
@@ -180,13 +180,14 @@ function init(wsServer, path) {
                     if (guesses.length === 0)
                         return [];
                     const mostVoted = guesses.sort((a, b) => b.votes.length - a.votes.length)[0];
-                    if (mostVoted.votes.length >= Math.ceil(room[team].size / 2))
+                    if (mostVoted.votes.length === 1 || mostVoted.votes.length >= Math.ceil(room[team].size / 2))
                         return mostVoted.code;
                     else
                         return [];
                 },
                 isEqualCodes = (codeA, codeB) => codeA.length && codeB.length && codeA.every((word, index) => word === codeB[index]),
                 endRound = () => {
+                    room.readyPlayers.clear();
                     const round = {
                         black: {
                             codeWords: room.blackCodeWords,
@@ -233,7 +234,7 @@ function init(wsServer, path) {
                         room.teamWin = "black";
                     else if (room.whiteHackCount === 2 && room.blackHackCount < 2 && room.blackFailCount < 2)
                         room.teamWin = "white";
-                    else if (room.rounds.length === 8) {
+                    else {
                         let
                             blackPoints = room.blackHackCount - room.blackFailCount,
                             whitePoints = room.whiteHackCount - room.whiteFailCount;
@@ -355,15 +356,20 @@ function init(wsServer, path) {
                 "add-guess": (user, code, isHack) => {
                     if (room.phase === 2 && (room.black.has(user) || room.white.has(user))
                         && code && code.every && code.every((number) => ~[1, 2, 3, 4].indexOf(number))
+                        && (!isHack || room.rounds.length > 0)
                         && (new Set(code)).size === code.length) {
                         const
                             color = room.black.has(user) ? "black" : "white",
                             guessList = state[color][!isHack ? "guesses" : "hackGuesses"];
+                        guessList.forEach((guess) => {
+                            if (~guess.votes.indexOf(user))
+                                guess.votes.splice(guess.votes.indexOf(user), 1);
+                        });
                         if (guessList.every((item) => item.code.join() !== code.join())) {
                             guessList.push({
                                 code,
                                 player: user,
-                                votes: []
+                                votes: [user]
                             });
                             updateState();
                         }
@@ -408,11 +414,11 @@ function init(wsServer, path) {
                 "toggle-ready": (user) => {
                     if (room.phase === 1 && !room.readyPlayers.has(user) && (room.blackMaster === user || room.whiteMaster === user)) {
                         room.readyPlayers.add(user);
-                        if (room.readyPlayers.size === 1)
+                        if (room.readyPlayers.size === 1) {
                             if (room.timed && room.time > (30 * 1000))
                                 room.time = 30 * 1000;
-                            else
-                                startTeamPhase();
+                        } else
+                            startTeamPhase();
                         update();
                     } else if (room.phase === 2 && (room.black.has(user) || room.white.has(user))) {
                         if (room.readyPlayers.has(user))
