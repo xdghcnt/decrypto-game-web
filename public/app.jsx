@@ -159,6 +159,7 @@ class WordsInputPane extends React.Component {
             hack = this.props.hack,
             game = this.props.game,
             codes = this.props.codes,
+            isSpectator = !!~data.spectators.indexOf(data.userId),
             emptyHolder = <span className="empty-holder">&lt;Empty&gt;</span>;
         return (
             <div className={cs("words-input", color)}>
@@ -206,7 +207,7 @@ class WordsInputPane extends React.Component {
                         </div>)
                         : <div className="guess guess-stub">?</div>
                 )}
-                {(data.phase === 2 && (data[`${color}Master`] !== data.userId || hack) && (data.rounds.length || !hack))
+                {!isSpectator && (data.phase === 2 && (data[`${color}Master`] !== data.userId || hack) && (data.rounds.length || !hack))
                     ? <div className="add-guess">
                         <div className="add-guess-button" onClick={() => game.handleClickAddGuess(hack)}>
                             <span className="material-icons">add_box</span>
@@ -243,7 +244,7 @@ class WordColumn extends React.Component {
                         <i className="material-icons">vpn_key</i>
                         {index + 1}
                     </div>
-                    {isEnemy
+                    {!isEnemy
                         ? ((data.player.words && hyphenate(!data.teamWin ? data.player.words[index] : data[`${enemyTeam}WordGuesses`][index] || "")) ||
                             (!data.teamWin ? unknownHolder : ""))
                         : (!~data.spectators.indexOf(data.userId) && ~[1, 2].indexOf(data.phase) && data.player.wordGuesses)

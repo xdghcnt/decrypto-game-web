@@ -179,7 +179,7 @@ function init(wsServer, path) {
                     const guesses = state[team][!isHack ? "guesses" : "hackGuesses"];
                     if (guesses.length === 0)
                         return [];
-                    const sorted = guesses.sort((a, b) => b.votes.length - a.votes.length)[0];
+                    const sorted = guesses.sort((a, b) => b.votes.length - a.votes.length);
                     if (!sorted[1] || sorted[0].votes.length > sorted[1].votes.length)
                         return sorted[0].code;
                     else
