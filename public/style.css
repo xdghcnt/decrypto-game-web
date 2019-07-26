@@ -418,7 +418,7 @@ body.dark-theme {
 }
 
 .spectators .player:nth-child(even) {
-    background: white;
+    background: transparent;
 }
 
 .word-input input {
