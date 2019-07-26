@@ -392,8 +392,9 @@ body.dark-theme {
     flex-flow: row;
     align-items: center;
     margin-left: 8px;
-    background: #6f88a9;
-    padding: 5px;
+    background: #3b4858;
+    padding: 4px 5px;
+    user-select: none;
 }
 
 .master-icon {
@@ -482,48 +483,49 @@ body.dark-theme {
 }
 
 .guess {
-    padding: 6px 11px;
+    padding: 5px 11px;
     margin: 7px;
     line-height: 21px;
     position: relative;
     cursor: pointer;
     user-select: none;
     height: 64px;
+    border: 1px solid;
 }
 
 .add-guess-button {
     cursor: pointer;
     padding: 3px;
-    color: white;
+    color: #cecece;
     padding-left: 0;
 }
 
 .remove-guess {
-    font-size: 12px;
+    font-size: 9px;
     position: absolute;
-    left: -5px;
-    top: -4px;
-    border-radius: 25px;
+    left: 8px;
+    top: -6px;
     color: #f0fcfe;
-    padding: 3px 2px;
+    padding: 1px 3px;
     cursor: pointer;
     user-select: none;
 }
 
 .guess-vote {
     font-size: 12px;
-    border-radius: 25px;
-    color: #f0fcfe;
     padding: 3px 2px;
     cursor: pointer;
     user-select: none;
     margin-top: 2px;
+    width: 7px;
+    height: 3px;
+    color: transparent;
 }
 
 .guess-vote-list {
     position: absolute;
-    bottom: -7px;
-    right: -7px;
+    bottom: 5px;
+    right: -4px;
     display: flex;
     flex-flow: column;
 }
@@ -757,4 +759,16 @@ body.dark-theme {
     flex-wrap: wrap;
     justify-content: center;
     box-shadow: black 0 0 5px -2px;
+}
+
+.guess-input {
+    padding: 1px 6px;
+    background: #480909;
+    margin: 2px;
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid #888888;
+    color: red;
+    font-family: digital-7_monomono, sans-serif;
+    font-size: 21px;
 }

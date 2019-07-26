@@ -180,7 +180,7 @@ function init(wsServer, path) {
                     if (guesses.length === 0)
                         return [];
                     const sorted = guesses.sort((a, b) => b.votes.length - a.votes.length)[0];
-                    if (sorted[0].votes.length > sorted[1].votes.length)
+                    if (!sorted[1] || sorted[0].votes.length > sorted[1].votes.length)
                         return sorted[0].code;
                     else
                         return [];

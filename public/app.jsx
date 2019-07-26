@@ -182,7 +182,10 @@ class WordsInputPane extends React.Component {
                 </div>
                 {(data.player[!hack ? "guesses" : "hackGuesses"] || []).map((guess, index) =>
                     !guess.stub
-                        ? (<div className="guess" style={{"background": `${data.playerColors[guess.player]}40`}}
+                        ? (<div className="guess" style={{
+                            "background": `${data.playerColors[guess.player]}40`,
+                            "border-color": data.playerColors[guess.player]
+                        }}
                                 onClick={(evt) => game.toggleVoteGuess(index, hack)}>
                             {guess.code.map((code) => <div className="guess-code">
                                 {code}
@@ -190,7 +193,7 @@ class WordsInputPane extends React.Component {
                             <div className="guess-vote-list">
                                 {guess.votes.map((vote) =>
                                     <span style={{"background": `${data.playerColors[vote]}a1`}}
-                                          className="guess-vote material-icons">check</span>
+                                          className="guess-vote"/>
                                 )}
 
                             </div>
@@ -210,14 +213,9 @@ class WordsInputPane extends React.Component {
                         </div>
                         <div className="add-guess-inputs">
                             {[0, 1, 2].map((index) =>
-                                <input id={`guess-add-${index}-${hack ? "hack" : ""}`}
-                                       className="add-guess-input"
-                                       type="number"
-                                       defaultValue={1}
-                                       min="1"
-                                       max="4"
-                                       onChange={evt => !isNaN(evt.target.valueAsNumber)}
-                                />)}
+                                <div
+                                    onClick={() => game.toggleGuessInput(index, hack)}
+                                    className="guess-input">{data.inputs[!hack ? "guess" : "hack"][index]}</div>)}
                         </div>
                     </div>
                     : ""}
@@ -292,7 +290,8 @@ class Game extends React.Component {
         this.socket.on("state", state => {
             this.setState(Object.assign(this.state, {
                 userId: this.userId,
-                player: this.state.player || {}
+                player: this.state.player || {},
+                inputs: this.state.inputs || {guess: [1, 1, 1], hack: [1, 1, 1]}
             }, state));
             if (this.state.playerColors[this.userId])
                 localStorage.decryptoUserColor = this.state.playerColors[this.userId];
@@ -356,6 +355,15 @@ class Game extends React.Component {
             top: `${getRandomInt(147)}px`,
             transform: `rotate(${getRandomInt(360)}deg)`
         };
+    }
+
+    toggleGuessInput(index, hack) {
+        const inputs = this.state.inputs[!hack ? "guess" : "hack"];
+        if (inputs[index] === 4)
+            inputs[index] = 1;
+        else
+            inputs[index]++;
+        this.setState(this.state);
     }
 
     handleToggleTheme() {
@@ -460,8 +468,7 @@ class Game extends React.Component {
     }
 
     handleClickAddGuess(hack) {
-        this.socket.emit("add-guess", [0, 1, 2].map((index) =>
-            document.getElementById(`guess-add-${index}-${hack ? "hack" : ""}`).valueAsNumber), hack);
+        this.socket.emit("add-guess", this.state.inputs[!hack ? "guess" : "hack"], hack);
     }
 
     toggleVoteGuess(index, hack) {
@@ -493,7 +500,7 @@ class Game extends React.Component {
             if (!guesses || guesses.length === 0 || guesses[0].stub)
                 return [];
             const sorted = (guesses.slice()).sort((a, b) => b.votes.length - a.votes.length);
-            if (sorted[0].votes.length > sorted[1].votes.length)
+            if (!sorted[1] || sorted[0].votes.length > sorted[1].votes.length)
                 return sorted[0].code;
             else
                 return [];
