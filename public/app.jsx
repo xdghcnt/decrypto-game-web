@@ -609,9 +609,9 @@ class Game extends React.Component {
                             )}
                         </div>
                     </div>
-                    <div className={cs("rounds-section", {locked: !!data.roundsLocked})}>
-                        <div className="round-section-button material-icons"
-                             onClick={() => this.toggleRoundsLocked()}/>
+                    <div className={cs("rounds-section", {locked: !!data.roundsLocked})}
+                         onClick={() => this.toggleRoundsLocked()}>
+                        <div className="round-section-button material-icons"/>
                         {data.rounds.map((round, index) =>
                             <div className="round-row">
                                 <RoundTable data={data} round={round[playerTeam]} roundNum={index}
