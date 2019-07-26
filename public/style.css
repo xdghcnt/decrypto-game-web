@@ -690,7 +690,19 @@ body.dark-theme {
     bottom: 98px;
 }
 
+.round-section-button::after {
+    content: "event_note";
+}
+
+.rounds-section.locked .round-section-button::after {
+    content: "lock";
+}
+
 .rounds-section:hover {
+    right: 0;
+}
+
+.rounds-section.locked {
     right: 0;
 }
 

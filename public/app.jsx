@@ -460,6 +460,11 @@ class Game extends React.Component {
         } else return [];
     }
 
+    toggleRoundsLocked() {
+        this.state.roundsLocked = !this.state.roundsLocked;
+        this.setState(this.state);
+    }
+
     render() {
         clearTimeout(this.timerTimeout);
         if (this.state.disconnected)
@@ -604,10 +609,9 @@ class Game extends React.Component {
                             )}
                         </div>
                     </div>
-                    <div className="rounds-section">
-                        <div className="round-section-button material-icons">
-                            event_note
-                        </div>
+                    <div className={cs("rounds-section", {locked: !!data.roundsLocked})}>
+                        <div className="round-section-button material-icons"
+                             onClick={() => this.toggleRoundsLocked()}/>
                         {data.rounds.map((round, index) =>
                             <div className="round-row">
                                 <RoundTable data={data} round={round[playerTeam]} roundNum={index}

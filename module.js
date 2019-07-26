@@ -56,8 +56,8 @@ function init(wsServer, path) {
                     teamsLocked: false,
                     teamWin: null,
                     timed: true,
-                    masterTime: testMode ? 5 : 60,
-                    teamTime: testMode ? 5 : 60,
+                    masterTime: testMode ? 5 : 90,
+                    teamTime: testMode ? 5 : 90,
                     time: null,
                     paused: true,
                     readyPlayers: new JSONSet(),
@@ -371,6 +371,7 @@ function init(wsServer, path) {
                                 player: user,
                                 votes: [user]
                             });
+                            room.readyPlayers.delete(user);
                             updateState();
                         }
                     }
@@ -400,6 +401,7 @@ function init(wsServer, path) {
                                 });
                                 guesses[index].votes.push(user);
                             }
+                        room.readyPlayers.delete(user);
                         update();
                         updateState();
                     }
