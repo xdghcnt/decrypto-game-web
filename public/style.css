@@ -417,7 +417,7 @@ body.dark-theme {
     padding: 3px 1px;
 }
 
-.player:nth-child(even) {
+.spectators .player:nth-child(even) {
     background: white;
 }
 
