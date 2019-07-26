@@ -38,6 +38,10 @@ body.dark-theme {
     background: #252525;
 }
 
+.dark-theme .kicked {
+    color: gainsboro;
+}
+
 .player.self {
     font-weight: bold;
 }
