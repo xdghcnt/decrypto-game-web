@@ -226,6 +226,46 @@ class WordsInputPane extends React.Component {
     }
 }
 
+class WordColumn extends React.Component {
+    render() {
+        const
+            data = this.props.data,
+            index = this.props.index,
+            codeList = this.props.codeList,
+            isEnemy = this.props.isEnemy,
+            playerTeam = this.props.playerTeam,
+            enemyTeam = playerTeam === "black" ? "white" : "black",
+            game = this.props.game,
+            emptyHolder = <span className="empty-holder">&lt;Empty&gt;</span>,
+            unknownHolder = <span className="empty-holder">&lt;Unknown&gt;</span>;
+        return (
+            <div className={cs("word-column", isEnemy ? enemyTeam : playerTeam)}>
+                <div className="word">
+                    <div className="word-number">
+                        <i className="material-icons">vpn_key</i>
+                        {index + 1}
+                    </div>
+                    {isEnemy
+                        ? ((data.player.words && hyphenate(!data.teamWin ? data.player.words[index] : data[`${enemyTeam}WordGuesses`][index] || "")) ||
+                            (!data.teamWin ? unknownHolder : ""))
+                        : (!~data.spectators.indexOf(data.userId) && ~[1, 2].indexOf(data.phase) && data.player.wordGuesses)
+                            ? (<input
+                                placeholder="<Unknown>"
+                                onChange={(evt) => game.handleChangeWordGuess(index, evt.target.value)}
+                                value={data.player.wordGuesses[index]}/>)
+                            : (data.player.wordGuesses && hyphenate(!data.teamWin ? data.player.wordGuesses[index] : data[`${enemyTeam}Words`][index] || "")) ||
+                            <span className="empty-holder">&lt;Unknown&gt;</span>}
+                </div>
+                <div
+                    className="word-codes-list">{codeList[index].length ? codeList[index].map((word) =>
+                    <div className="word-code-list-item">{word || emptyHolder}</div>
+                ) : <div
+                    className="word-code-list-holder material-icons">more_horiz</div>}</div>
+            </div>
+        );
+    }
+}
+
 class Game extends React.Component {
     componentDidMount() {
         const initArgs = {};
@@ -562,51 +602,28 @@ class Game extends React.Component {
                     </div>
                     <div className="words-section">
                         <div className="words-column-group">
-                            {[0, 1, 2, 3].map((index) =>
-                                <div className={cs("word-column", playerTeam)}>
-                                    <div className="word">
-                                        <div className="word-number">
-                                            <i className="material-icons">vpn_key</i>
-                                            {index + 1}
-                                        </div>
-                                        {(data.player.words && hyphenate(!data.teamWin ? data.player.words[index] : data[`${enemyTeam}WordGuesses`][index] || "")) ||
-                                        (!data.teamWin ? <span className="empty-holder">&lt;Unknown&gt;</span> : "")}
-                                    </div>
-                                    <div
-                                        className="word-codes-list">{teamWordCodesList[index].length ? teamWordCodesList[index].map((word) =>
-                                        <div className="word-code-list-item">{word ||
-                                        <span className="empty-holder">&lt;Empty&gt;</span>}</div>
-                                    ) : <div
-                                        className="word-code-list-holder material-icons">more_horiz</div>}</div>
-                                </div>
-                            )}
-
+                            {[0, 1].map((index) => <WordColumn playerTeam={playerTeam}
+                                                               index={index} data={data}
+                                                               game={this} isEnemy={false}
+                                                               codeList={teamWordCodesList}/>)}
                         </div>
                         <div className="words-column-group">
-                            {[0, 1, 2, 3].map((index) =>
-                                <div className={cs("word-column", enemyTeam)}>
-                                    <div className="word">
-                                        <div className="word-number">
-                                            <i className="material-icons">vpn_key</i>
-                                            {index + 1}
-                                        </div>
-                                        {(!isSpectator && ~[1, 2].indexOf(data.phase) && data.player.wordGuesses)
-                                            ? (<input
-                                                placeholder="<Unknown>"
-                                                onChange={(evt) => game.handleChangeWordGuess(index, evt.target.value)}
-                                                value={data.player.wordGuesses[index]}/>)
-                                            : (data.player.wordGuesses && hyphenate(!data.teamWin ? data.player.wordGuesses[index] : data[`${enemyTeam}Words`][index] || "")) ||
-                                            <span className="empty-holder">&lt;Unknown&gt;</span>}
-
-                                    </div>
-                                    <div
-                                        className="word-codes-list">{enemyWordCodesList[index].length ? enemyWordCodesList[index].map((word) =>
-                                        <div className="word-code-list-item">{word ||
-                                        <span className="empty-holder">&lt;Empty&gt;</span>}</div>
-                                    ) : <div
-                                        className="word-code-list-holder material-icons">more_horiz</div>}</div>
-                                </div>
-                            )}
+                            {[2, 3].map((index) => <WordColumn playerTeam={playerTeam}
+                                                               index={index} data={data}
+                                                               game={this} isEnemy={false}
+                                                               codeList={teamWordCodesList}/>)}
+                        </div>
+                        <div className="words-column-group">
+                            {[0, 1].map((index) => <WordColumn playerTeam={playerTeam}
+                                                               index={index} data={data}
+                                                               game={this} isEnemy={true}
+                                                               codeList={enemyWordCodesList}/>)}
+                        </div>
+                        <div className="words-column-group">
+                            {[2, 3].map((index) => <WordColumn playerTeam={playerTeam}
+                                                               index={index} data={data}
+                                                               game={this} isEnemy={true}
+                                                               codeList={enemyWordCodesList}/>)}
                         </div>
                     </div>
                     <div className={cs("rounds-section", {locked: !!data.roundsLocked})}
