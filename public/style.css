@@ -567,7 +567,6 @@ body.dark-theme {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    box-shadow: black 0 0 5px -2px;
 }
 
 .join-team-button span {
@@ -751,4 +750,11 @@ body.dark-theme {
     align-items: center;
     color: #9a9a9a;
     font-family: squarefontregular, sans-serif;
+}
+
+.words-column-team {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    box-shadow: black 0 0 5px -2px;
 }

@@ -601,29 +601,33 @@ class Game extends React.Component {
                         </div>
                     </div>
                     <div className="words-section">
-                        <div className="words-column-group">
-                            {[0, 1].map((index) => <WordColumn playerTeam={playerTeam}
-                                                               index={index} data={data}
-                                                               game={this} isEnemy={false}
-                                                               codeList={teamWordCodesList}/>)}
+                        <div className="words-column-team">
+                            <div className="words-column-group">
+                                {[0, 1].map((index) => <WordColumn playerTeam={playerTeam}
+                                                                   index={index} data={data}
+                                                                   game={this} isEnemy={false}
+                                                                   codeList={teamWordCodesList}/>)}
+                            </div>
+                            <div className="words-column-group">
+                                {[2, 3].map((index) => <WordColumn playerTeam={playerTeam}
+                                                                   index={index} data={data}
+                                                                   game={this} isEnemy={false}
+                                                                   codeList={teamWordCodesList}/>)}
+                            </div>
                         </div>
-                        <div className="words-column-group">
-                            {[2, 3].map((index) => <WordColumn playerTeam={playerTeam}
-                                                               index={index} data={data}
-                                                               game={this} isEnemy={false}
-                                                               codeList={teamWordCodesList}/>)}
-                        </div>
-                        <div className="words-column-group">
-                            {[0, 1].map((index) => <WordColumn playerTeam={playerTeam}
-                                                               index={index} data={data}
-                                                               game={this} isEnemy={true}
-                                                               codeList={enemyWordCodesList}/>)}
-                        </div>
-                        <div className="words-column-group">
-                            {[2, 3].map((index) => <WordColumn playerTeam={playerTeam}
-                                                               index={index} data={data}
-                                                               game={this} isEnemy={true}
-                                                               codeList={enemyWordCodesList}/>)}
+                        <div className="words-column-team">
+                            <div className="words-column-group">
+                                {[0, 1].map((index) => <WordColumn playerTeam={playerTeam}
+                                                                   index={index} data={data}
+                                                                   game={this} isEnemy={true}
+                                                                   codeList={enemyWordCodesList}/>)}
+                            </div>
+                            <div className="words-column-group">
+                                {[2, 3].map((index) => <WordColumn playerTeam={playerTeam}
+                                                                   index={index} data={data}
+                                                                   game={this} isEnemy={true}
+                                                                   codeList={enemyWordCodesList}/>)}
+                            </div>
                         </div>
                     </div>
                     <div className={cs("rounds-section", {locked: !!data.roundsLocked})}
