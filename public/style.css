@@ -46,6 +46,10 @@ body.dark-theme {
     font-weight: bold;
 }
 
+.player.offline .player-name {
+    text-decoration: line-through;
+}
+
 .host-controls {
     position: fixed;
     right: 0;
@@ -401,6 +405,10 @@ body.dark-theme {
     font-size: 18px;
 }
 
+.master-icon.ready {
+    color: #00a466;
+}
+
 
 .player-color {
     display: inline-block;
@@ -550,6 +558,7 @@ body.dark-theme {
 
 .ready-markers .player-color {
     margin: 0 2px;
+    border-radius: 0;
 }
 
 .word-number .material-icons {
@@ -614,17 +623,21 @@ body.dark-theme {
     position: relative;
 }
 
-.round-table-code-try {
-    width: 21px;
-    text-align: center;
-    padding-top: 7px;
-    margin-right: 4px;
-}
-
 .round-table-code {
     width: 22px;
     text-align: center;
-    padding-top: 7px;
+    margin-right: 2px;
+    line-height: 24px;
+    height: 23px;
+    margin-top: 4px;
+}
+
+.round-table-code.correct {
+    background: #1ee82030;
+}
+
+.round-table-code.wrong {
+    background: #e81e1e30;
 }
 
 .round-number {
@@ -652,14 +665,19 @@ body.dark-theme {
 
 .token {
     position: absolute;
-    height: 60px;
-    width: 60px;
-    border-radius: 30px;
+    width: 200px;
+    height: 200px;
+    border-radius: 150px;
     background-size: contain;
     opacity: 1.8;
     box-shadow: 0 0 3px 1px black;
     cursor: pointer;
     transition: all 0.2s;
+}
+
+.token.after-anim {
+    height: 60px;
+    width: 60px;
 }
 
 .fail-token {
@@ -709,13 +727,6 @@ body.dark-theme {
 
 .rounds-section.locked {
     right: 0;
-}
-
-.round-table-code-hack-try {
-    width: 21px;
-    text-align: center;
-    padding-top: 7px;
-    margin-right: 3px;
 }
 
 @media (max-width: 1200px) {

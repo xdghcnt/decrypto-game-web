@@ -32,9 +32,11 @@ class Player extends React.Component {
                  data-playerId={id}>
                 <div className="player-color" style={{background: data.playerColors[id]}}
                      onClick={(evt) => !evt.stopPropagation() && (id === data.userId) && game.handleChangeColor()}/>
-                {data.playerNames[id]}&nbsp;
+                <span className="player-name">{data.playerNames[id]}&nbsp;</span>
                 {(data.whiteMaster === id || data.blackMaster === id)
-                    ? <span className="material-icons master-icon" title="Encoder">save</span>
+                    ? <span
+                        className={cs("material-icons", "master-icon", {ready: data.phase === 1 && !!~data.readyPlayers.indexOf(id)})}
+                        title="Encoder">save</span>
                     : ""}
                 {(~data.blackSlotPlayers.indexOf(id)) ? (
                     <span className="black-slot-button">&nbsp;{blackSlotButton}</span>
@@ -130,21 +132,30 @@ class RoundTable extends React.Component {
         return (
             <div className={cs("round-table", color)}>
                 <div className="round-number">{`0${roundNum + 1}`}</div>
-                {[0, 1, 2].map((index) =>
-                    <div className="round-table-row">
-                        <div className="round-table-code-word">
-                            {round.codeWords[index] || emptyHolder}
-                        </div>
-                        <div className="round-table-code-try">
-                            {(data.teamWin || !isEnemy || !enemyTryFailed) ? (round.try[index] || "-") : "?"}
-                        </div>
-                        <div className="round-table-code-hack-try">
-                            {(data.rounds[roundNum][color === "white" ? "black" : "white"].hackTry[index] || "-")}
-                        </div>
-                        <div className="round-table-code">
-                            {round.code[index] || "-"}
-                        </div>
-                    </div>
+                {[0, 1, 2].map((index) => {
+                        const
+                            codeTry = (data.teamWin || !isEnemy || !enemyTryFailed) ? (round.try[index] || "-") : "?",
+                            codeTryHack = (data.rounds[roundNum][color === "white" ? "black" : "white"].hackTry[index] || "-"),
+                            code = round.code[index];
+                        return <div className="round-table-row">
+                            <div className="round-table-code-word">
+                                {round.codeWords[index] || emptyHolder}
+                            </div>
+                            <div className={cs("round-table-code", "try", {
+                                correct: codeTry === code, wrong: codeTry !== code
+                            })}>
+                                {codeTry}
+                            </div>
+                            <div className="round-table-code">
+                                {code}
+                            </div>
+                            <div className={cs("round-table-code", "hack-try", {
+                                correct: codeTryHack === code, wrong: codeTryHack !== code
+                            })}>
+                                {codeTryHack}
+                            </div>
+                        </div>;
+                    }
                 )}
             </div>
         );
@@ -169,7 +180,7 @@ class WordsInputPane extends React.Component {
                             <div className="word-input">
                                 {(data.phase === 1 && data[`${color}Master`] === data.userId)
                                     ? (!~data.readyPlayers.indexOf(data.userId)
-                                        ? (<input placeholder="<Input>"
+                                        ? (<input placeholder={data.player.words[data.player.code[index] - 1]}
                                                   onChange={(evt) => game.handleChangCodeWord(index, evt.target.value)}
                                                   defaultValue={data.player.codeWords && data.player.codeWords[index]}/>)
                                         : data.player.codeWords[index])
@@ -235,6 +246,7 @@ class WordColumn extends React.Component {
             playerTeam = this.props.playerTeam,
             enemyTeam = playerTeam === "black" ? "white" : "black",
             game = this.props.game,
+            hasWords = !!data.player.words,
             emptyHolder = <span className="empty-holder">&lt;Empty&gt;</span>,
             unknownHolder = <span className="empty-holder">&lt;Unknown&gt;</span>;
         return (
@@ -244,16 +256,18 @@ class WordColumn extends React.Component {
                         <i className="material-icons">vpn_key</i>
                         {index + 1}
                     </div>
-                    {!isEnemy
-                        ? ((data.player.words && hyphenate(!data.teamWin ? data.player.words[index] : data[`${enemyTeam}WordGuesses`][index] || "")) ||
-                            (!data.teamWin ? unknownHolder : ""))
-                        : (!~data.spectators.indexOf(data.userId) && ~[1, 2].indexOf(data.phase) && data.player.wordGuesses)
-                            ? (<input
-                                placeholder="<Unknown>"
-                                onChange={(evt) => game.handleChangeWordGuess(index, evt.target.value)}
-                                value={data.player.wordGuesses[index]}/>)
-                            : (data.player.wordGuesses && hyphenate(!data.teamWin ? data.player.wordGuesses[index] : data[`${enemyTeam}Words`][index] || "")) ||
-                            <span className="empty-holder">&lt;Unknown&gt;</span>}
+                    {!data.teamWin
+                        ? hasWords
+                            ? (!isEnemy
+                                ? (data.player.words[index])
+                                : <input
+                                    placeholder="<Unknown>"
+                                    onChange={(evt) => game.handleChangeWordGuess(index, evt.target.value)}
+                                    value={data.player.wordGuesses[index]}/>)
+                            : unknownHolder
+                        : (!isEnemy
+                            ? `${(data[`${enemyTeam}WordGuesses`][index]) || "-"} (${data[`${playerTeam}Words`][index]})`
+                            : `${(data[`${playerTeam}WordGuesses`][index] || "-")} (${data[`${enemyTeam}Words`][index]})`)}
                 </div>
                 <div
                     className="word-codes-list">{codeList[index].length ? codeList[index].map((word) =>
@@ -289,11 +303,24 @@ class Game extends React.Component {
         initArgs.userColor = localStorage.decryptoUserColor;
         this.socket = window.socket.of("decrypto");
         this.socket.on("state", state => {
+            const
+                init = !this.state.inited,
+                updateTokenAnim = this.state.blackFailCount < state.blackFailCount
+                    || this.state.whiteFailCount < state.whiteFailCount
+                    || this.state.blackHackCount < state.blackHackCount
+                    || this.state.whiteHackCount < state.whiteHackCount;
             this.setState(Object.assign(this.state, {
                 userId: this.userId,
                 player: this.state.player || {},
                 inputs: this.state.inputs || {guess: [1, 1, 1], hack: [1, 1, 1]}
-            }, state));
+            }, state), () => {
+                if (init)
+                    [...document.getElementsByClassName("token")].forEach((node, index) =>
+                        node.classList.add("after-anim"));
+                else if (updateTokenAnim)
+                    [...document.getElementsByClassName("token")].forEach((node, index) =>
+                        setTimeout(() => node.classList.add("after-anim"), 100 * (index + 1)));
+            });
             if (this.state.playerColors[this.userId])
                 localStorage.decryptoUserColor = this.state.playerColors[this.userId];
         });
@@ -529,6 +556,7 @@ class Game extends React.Component {
                 isSpectator = !!~data.spectators.indexOf(user),
                 playerTeam = ~data.black.indexOf(user) ? "black" : "white",
                 enemyTeam = playerTeam === "white" ? "black" : "white",
+                isMaster = data[`${playerTeam}Master`] === data.userId,
                 teamWordCodesList = [[], [], [], []],
                 enemyWordCodesList = [[], [], [], []],
                 teamCodes = this.calcTry(playerTeam),
@@ -544,9 +572,9 @@ class Game extends React.Component {
                 readyButtonText = "Host can start";
             else if (data.phase === 0)
                 readyButtonText = "Not enough players";
-            else if (data.phase === 1 && data[`${playerTeam}Master`] === data.userId && !~data.readyPlayers.indexOf(data.userId))
+            else if (data.phase === 1 && isMaster && !~data.readyPlayers.indexOf(data.userId))
                 readyButtonText = "Ready";
-            else if (data.phase === 2 && !isSpectator)
+            else if (data.phase === 2 && !isSpectator && (!isMaster || data.rounds.length > 0))
                 readyButtonText = "Ready";
             else if (data.phase === 1)
                 readyButtonText = "Encoding";
@@ -604,8 +632,12 @@ class Game extends React.Component {
                     <div className="ready-button" onClick={() => this.handleClickReady()}>
                         {readyButtonText}
                         <div className="ready-markers">
-                            {data.phase === 2 ? data.readyPlayers.filter((item) => ~data[playerTeam].indexOf(item)).map((playerId) =>
-                                <div className="player-color" style={{background: data.playerColors[playerId]}}/>) : ""}
+                            {(!isSpectator && data.phase === 2) ? data.readyPlayers
+                                .filter((item) => ~data[playerTeam].indexOf(item)
+                                    && (data.rounds.length || (data.blackMaster !== item && data.whiteMaster !== item)))
+                                .map((playerId) =>
+                                    <div className="player-color"
+                                         style={{background: data.playerColors[playerId]}}/>) : ""}
                         </div>
                     </div>
                     <div className="words-section">

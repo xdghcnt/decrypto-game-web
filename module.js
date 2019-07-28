@@ -169,6 +169,10 @@ function init(wsServer, path) {
                 startTeamPhase = () => {
                     room.phase = 2;
                     room.readyPlayers.clear();
+                    if (!room.rounds.length) {
+                        room.readyPlayers.add(room.blackMaster);
+                        room.readyPlayers.add(room.whiteMaster);
+                    }
                     room.blackCodeWords = state.black.codeWords;
                     room.whiteCodeWords = state.white.codeWords;
                     startTimer();
@@ -292,7 +296,6 @@ function init(wsServer, path) {
                         room.blackMaster = null;
                     else if (room.whiteMaster === user)
                         room.whiteMaster = null;
-                    sendState(user);
                 },
                 removePlayer = (playerId) => {
                     leaveTeams(playerId, true);
@@ -423,14 +426,16 @@ function init(wsServer, path) {
                             startTeamPhase();
                         update();
                     } else if (room.phase === 2 && (room.black.has(user) || room.white.has(user))) {
-                        if (room.readyPlayers.has(user))
-                            room.readyPlayers.delete(user);
-                        else
-                            room.readyPlayers.add(user);
-                        if (room.readyPlayers.size === (room.black.size + room.white.size))
-                            endRound();
-                        else
-                            update();
+                        if (room.rounds.length > 0 || (room.blackMaster !== user && room.whiteMaster !== user)) {
+                            if (room.readyPlayers.has(user))
+                                room.readyPlayers.delete(user);
+                            else
+                                room.readyPlayers.add(user);
+                            if (room.readyPlayers.size === (room.black.size + room.white.size))
+                                endRound();
+                            else
+                                update();
+                        }
                     }
                 },
                 "start-game": (user) => {
@@ -480,6 +485,7 @@ function init(wsServer, path) {
                     if (playerId && user === room.hostId)
                         removePlayer(playerId);
                     update();
+                    sendState(playerId);
                 },
                 "give-host": (user, playerId) => {
                     if (playerId && user === room.hostId) {
