@@ -783,3 +783,27 @@ body.dark-theme {
     font-family: digital-7_monomono, sans-serif;
     font-size: 21px;
 }
+
+.round-anim {
+    position: fixed;
+    background: #1b1b1bba;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-left: 100%;
+    transition: 0.3s padding-left;
+}
+
+.round-anim.after-anim {
+    padding-left: 0;
+}
+
+.round-anim .round-table {
+    width: 280px;
+    height: 96px;
+    zoom: 1.5;
+}

@@ -121,10 +121,12 @@ class RoundTable extends React.Component {
     render() {
         const
             data = this.props.data,
+            game = this.props.game,
             color = this.props.color,
             round = this.props.round,
             roundNum = this.props.roundNum,
             isEnemy = this.props.isEnemy,
+            isRoundAnim = this.props.isRoundAnim,
             emptyHolder = <span className="empty-holder">&lt;Empty&gt;</span>,
             isEqualCodes = (codeA, codeB) =>
                 codeA.length && codeB.length && codeA.every((word, index) => word === codeB[index]),
@@ -133,16 +135,38 @@ class RoundTable extends React.Component {
             <div className={cs("round-table", color)}>
                 <div className="round-number">{`0${roundNum + 1}`}</div>
                 {[0, 1, 2].map((index) => {
-                        const
+                        let
                             codeTry = (data.teamWin || !isEnemy || !enemyTryFailed) ? (round.try[index] || "-") : "?",
                             codeTryHack = (data.rounds[roundNum][color === "white" ? "black" : "white"].hackTry[index] || "-"),
-                            code = round.code[index];
+                            code = round.code[index],
+                            showTryColor = !isRoundAnim
+                                ? true
+                                : (data.roundAnimPhase > index && !(data.roundAnimPhase < 3 && isEnemy)),
+                            showHackTryColor = !isRoundAnim ? true : (data.roundAnimPhase > index);
+                        if (isRoundAnim) {
+                            if (data.roundAnimPhase <= index) {
+                                code = "";
+                                if (!isEnemy)
+                                    codeTryHack = "";
+                                else
+                                    codeTry = "";
+                            }
+                            if (data.roundAnimPhase < 3 && isEnemy)
+                                codeTry = "?";
+                            if (data.roundAnimSound && index === (data.roundAnimPhase - 1)) {
+                                if (!isEnemy ? (codeTry === code) : (codeTryHack === code))
+                                    game.correctSound.play();
+                                else
+                                    game.wrongSound.play();
+                                data.roundAnimSound = false;
+                            }
+                        }
                         return <div className="round-table-row">
                             <div className="round-table-code-word">
                                 {round.codeWords[index] || emptyHolder}
                             </div>
                             <div className={cs("round-table-code", "try", {
-                                correct: codeTry === code, wrong: codeTry !== code
+                                correct: showTryColor && (codeTry === code), wrong: showTryColor && (codeTry !== code)
                             })}>
                                 {codeTry}
                             </div>
@@ -150,7 +174,8 @@ class RoundTable extends React.Component {
                                 {code}
                             </div>
                             <div className={cs("round-table-code", "hack-try", {
-                                correct: codeTryHack === code, wrong: codeTryHack !== code
+                                correct: showHackTryColor && (codeTryHack === code),
+                                wrong: showHackTryColor && (codeTryHack !== code)
                             })}>
                                 {codeTryHack}
                             </div>
@@ -248,7 +273,7 @@ class WordColumn extends React.Component {
             game = this.props.game,
             hasWords = !!data.player.words,
             emptyHolder = <span className="empty-holder">&lt;Empty&gt;</span>,
-            unknownHolder = <span className="empty-holder">&lt;Unknown&gt;</span>;
+            unknownHolder = "";
         return (
             <div className={cs("word-column", isEnemy ? enemyTeam : playerTeam)}>
                 <div className="word">
@@ -308,12 +333,24 @@ class Game extends React.Component {
                 updateTokenAnim = this.state.blackFailCount < state.blackFailCount
                     || this.state.whiteFailCount < state.whiteFailCount
                     || this.state.blackHackCount < state.blackHackCount
-                    || this.state.whiteHackCount < state.whiteHackCount;
+                    || this.state.whiteHackCount < state.whiteHackCount,
+                roundAnimSound = !this.isMuted() && state.roundAnimPhase !== this.state.roundAnimPhase && state.roundAnimPhase > 0,
+                roundAnim = state.roundAnimPhase !== this.state.roundAnimPhase;
+            if (!this.isMuted() && this.state.inited
+                && ((this.state.blackMaster !== this.state.userId && state.blackMaster === this.state.userId)
+                    || (this.state.whiteMaster !== this.state.userId && state.whiteMaster === this.state.userId)))
+                this.masterNotifySound.play();
             this.setState(Object.assign(this.state, {
                 userId: this.userId,
                 player: this.state.player || {},
-                inputs: this.state.inputs || {guess: [1, 1, 1], hack: [1, 1, 1]}
+                inputs: this.state.inputs || {guess: [1, 1, 1], hack: [1, 1, 1]},
+                roundAnimSound
             }, state), () => {
+                if (roundAnim)
+                    setTimeout(() => {
+                        [...document.getElementsByClassName("round-anim")].forEach((node) =>
+                            node.classList.add("after-anim"))
+                    }, 0);
                 if (init)
                     [...document.getElementsByClassName("token")].forEach((node, index) =>
                         node.classList.add("after-anim"));
@@ -350,8 +387,13 @@ class Game extends React.Component {
         this.timerSound = new Audio("/decrypto/media/timer-beep.mp3");
         this.chimeSound = new Audio("/decrypto/media/chime.mp3");
         this.tapSound = new Audio("/decrypto/media/tap.mp3");
+        this.correctSound = new Audio("/decrypto/media/correct.mp3");
+        this.wrongSound = new Audio("/decrypto/media/wrong.mp3");
+        this.masterNotifySound = new Audio("/decrypto/media/master_notify.mp3");
         this.timerSound.volume = 0.5;
         this.chimeSound.volume = 0.25;
+        this.correctSound.volume = 0.5;
+        this.wrongSound.volume = 0.1;
         this.tapSound.volume = 0.3;
         window.hyphenate = createHyphenator(hyphenationPatternsRu);
         window.hyphenateEn = createHyphenator(hyphenationPatternsEnUs);
@@ -560,7 +602,8 @@ class Game extends React.Component {
                 teamWordCodesList = [[], [], [], []],
                 enemyWordCodesList = [[], [], [], []],
                 teamCodes = this.calcTry(playerTeam),
-                enemyCodes = this.calcTry(playerTeam, true);
+                enemyCodes = this.calcTry(playerTeam, true),
+                animTeam = ["black", "white"][(data.rounds.length + 1 + data.roundAnimSection) % 2];
             let readyButtonText = "";
             if (data.teamWin === "tie")
                 readyButtonText = "Tie";
@@ -675,13 +718,21 @@ class Game extends React.Component {
                         <div className="round-section-button material-icons"/>
                         {data.rounds.map((round, index) =>
                             <div className="round-row">
-                                <RoundTable data={data} round={round[playerTeam]} roundNum={index}
+                                <RoundTable data={data} game={this} round={round[playerTeam]} roundNum={index}
                                             color={playerTeam}/>
-                                <RoundTable data={data} round={round[enemyTeam]} roundNum={index} color={enemyTeam}
+                                <RoundTable data={data} game={this} round={round[enemyTeam]} roundNum={index}
+                                            color={enemyTeam}
                                             isEnemy={true}/>
                             </div>
                         )}
                     </div>
+                    {data.roundAnim
+                        ? <div className="round-anim">
+                            <RoundTable data={data} game={this} round={data.rounds[data.rounds.length - 1][animTeam]}
+                                        roundNum={data.rounds.length - 1} isEnemy={animTeam !== playerTeam}
+                                        color={animTeam} isRoundAnim={true}/>
+                        </div>
+                        : ""}
                     <div className={
                         cs("spectators-section", {active: data.spectators.length > 0 || !data.teamsLocked})}>
                         <div

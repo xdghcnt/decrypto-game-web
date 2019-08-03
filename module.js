@@ -30,7 +30,7 @@ function init(wsServer, path) {
     class GameState extends EventEmitter {
         constructor(hostId, hostData, userRegistry) {
             super();
-            let timerInterval;
+            let timerInterval, animInterval;
             const
                 room = {
                     inited: true,
@@ -56,14 +56,17 @@ function init(wsServer, path) {
                     teamsLocked: false,
                     teamWin: null,
                     timed: true,
-                    masterTime: testMode ? 5 : 90,
-                    teamTime: testMode ? 5 : 90,
+                    masterTime: testMode ? 2 : 90,
+                    teamTime: testMode ? 2 : 90,
                     time: null,
                     paused: true,
                     readyPlayers: new JSONSet(),
                     blackSlotPlayers: new JSONSet(),
                     whiteSpectators: new JSONSet(),
                     blackSpectators: new JSONSet(),
+                    roundAnim: false,
+                    roundAnimPhase: 0,
+                    roundAnimSection: 0,
                     rounds: [
                         //{ white: {codeWords: [], try: [], hackTry [] } }
                     ],
@@ -126,6 +129,8 @@ function init(wsServer, path) {
                 updateState = () => [...room.onlinePlayers].forEach(sendState),
                 startGame = () => {
                     if (room.black.size > 1 && room.white.size > 1) {
+                        room.roundAnim = false;
+                        clearInterval(animInterval);
                         room.whiteFailCount = 0;
                         room.whiteHackCount = 0;
                         room.blackFailCount = 0;
@@ -207,6 +212,27 @@ function init(wsServer, path) {
                         },
                     };
                     room.rounds.push(round);
+                    room.roundAnim = true;
+                    room.roundAnimSection = 0;
+                    room.roundAnimPhase = 0;
+                    update();
+                    animInterval = setInterval(() => {
+                        room.roundAnimPhase++;
+                        if (room.roundAnimPhase === 4) {
+                            if (room.roundAnimSection === 0) {
+                                room.roundAnimPhase = 0;
+                                room.roundAnimSection++;
+                            } else {
+                                room.roundAnim = false;
+                                clearInterval(animInterval);
+                                endRoundAnim();
+                            }
+                        }
+                        update();
+                    }, 1000);
+                },
+                endRoundAnim = () => {
+                    const round = room.rounds[room.rounds.length - 1];
                     if (!isEqualCodes(round.black.try, round.black.code))
                         room.blackFailCount++;
                     if (!isEqualCodes(round.white.try, round.white.code))
@@ -230,13 +256,17 @@ function init(wsServer, path) {
                     room.teamsLocekd = false;
                     clearInterval(timerInterval);
                     room.teamWin = "tie";
-                    if (room.blackFailCount === 2 && room.whiteHackCount < 2 && room.whiteFailCount < 2)
+                    if (room.blackFailCount === 2
+                        && room.blackHackCount < 2 && room.whiteHackCount < 2 && room.whiteFailCount < 2)
                         room.teamWin = "white";
-                    else if (room.whiteFailCount === 2 && room.blackHackCount < 2 && room.blackFailCount < 2)
+                    else if (room.whiteFailCount === 2
+                        && room.whiteHackCount < 2 && room.blackHackCount < 2 && room.blackFailCount < 2)
                         room.teamWin = "black";
-                    else if (room.blackHackCount === 2 && room.whiteHackCount < 2 && room.whiteFailCount < 2)
+                    else if (room.blackHackCount === 2
+                        && room.blackFailCount < 2 && room.whiteHackCount < 2 && room.whiteFailCount < 2)
                         room.teamWin = "black";
-                    else if (room.whiteHackCount === 2 && room.blackHackCount < 2 && room.blackFailCount < 2)
+                    else if (room.whiteHackCount === 2
+                        && room.whiteFailCount < 2 && room.blackHackCount < 2 && room.blackFailCount < 2)
                         room.teamWin = "white";
                     else {
                         let
@@ -322,7 +352,6 @@ function init(wsServer, path) {
                         delete room.playerNames[user];
                     room.spectators.delete(user);
                     if (room.onlinePlayers.size === 0 && !testMode) {
-                        clearInterval(timerInterval);
                         room.paused = true;
                     }
                     update();
@@ -448,6 +477,7 @@ function init(wsServer, path) {
                     update();
                 },
                 "toggle-paused": (user) => {
+                    clearInterval(animInterval);
                     if (user === room.hostId)
                         room.paused = !room.paused;
                     update();
