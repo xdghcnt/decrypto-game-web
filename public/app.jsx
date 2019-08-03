@@ -196,9 +196,23 @@ class WordsInputPane extends React.Component {
             game = this.props.game,
             codes = this.props.codes,
             isSpectator = !!~data.spectators.indexOf(data.userId),
-            emptyHolder = <span className="empty-holder">&lt;Empty&gt;</span>;
+            emptyHolder = <span className="empty-holder">&lt;Empty&gt;</span>,
+            communicationIcon = <span className="material-icons">headset_mic</span>,
+            interceptionIcon = <span className="material-icons">lock</span>;
         return (
             <div className={cs("words-input", color)}>
+                <div className="words-input-title">{!hack
+                    ? <span>{
+                        color === "white" ? communicationIcon : ""}
+                        Communication
+                        {color === "black" ? communicationIcon : ""}
+                </span>
+                    : <span>
+                        {color === "white" ? interceptionIcon : ""}
+                        Interception
+                        {color === "black" ? interceptionIcon : ""}
+                    </span>}
+                </div>
                 <div className="word-rows">
                     {[0, 1, 2].map((index) =>
                         <div className="word-row">

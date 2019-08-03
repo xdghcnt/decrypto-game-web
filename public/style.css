@@ -330,6 +330,7 @@ body.dark-theme {
     flex-wrap: wrap;
     display: flex;
     box-shadow: black 0px 0px 5px -2px;
+    position: relative;
 }
 
 .words-input.white {
@@ -729,6 +730,12 @@ body.dark-theme {
     right: 0;
 }
 
+@media (max-width: 730px) {
+    .words-input-title {
+        display: none;
+    }
+}
+
 @media (max-width: 1200px) {
     .stand {
         display: none;
@@ -815,4 +822,25 @@ body.dark-theme {
     align-items: center;
     display: flex;
     justify-content: center;
+}
+
+.words-input-title {
+    position: absolute;
+    bottom: -41px;
+    font-family: squarefontregular, sans-serif;
+    font-size: 27px;
+    color: #9e9e9e;
+}
+
+.words-input-title .material-icons {
+    vertical-align: text-top;
+    margin: 0 4px;
+}
+
+.black .words-input-title {
+    left: 21px;
+}
+
+.white .words-input-title {
+    right: 21px;
 }
