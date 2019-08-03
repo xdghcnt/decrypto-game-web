@@ -655,7 +655,7 @@ class Game extends React.Component {
                             {(data.player.words ? data.player.words.map((word, index) =>
                                 <div
                                     className={cs("stand-code", `stand-code-${index}`)}>
-                                    <span>{hyphenate(word) || "?"}</span>
+                                    <div className="stand-code-word">{hyphenate(word) || "?"}</div>
                                 </div>) : "")}
                         </div>
                         <Team color="white" data={data} game={game}
@@ -669,8 +669,12 @@ class Game extends React.Component {
                                         : 0)).toUTCString().match(/(\d\d:\d\d )/)[0].trim()}
                                 </span> : ""}</div>
                     <div className="main-pane">
-                        <WordsInputPane data={data} game={game} color={playerTeam} codes={teamCodes}/>
-                        <WordsInputPane data={data} game={game} color={enemyTeam} codes={enemyCodes} hack={true}/>
+                        <WordsInputPane data={data} game={game} color="black"
+                                        codes={playerTeam === "black" ? teamCodes : enemyCodes}
+                                        hack={playerTeam === "white"}/>
+                        <WordsInputPane data={data} game={game} color="white"
+                                        codes={playerTeam === "white" ? teamCodes : enemyCodes}
+                                        hack={playerTeam === "black"}/>
                     </div>
                     <div className="ready-button" onClick={() => this.handleClickReady()}>
                         {readyButtonText}
@@ -688,28 +692,36 @@ class Game extends React.Component {
                             <div className="words-column-group">
                                 {[0, 1].map((index) => <WordColumn playerTeam={playerTeam}
                                                                    index={index} data={data}
-                                                                   game={this} isEnemy={false}
-                                                                   codeList={teamWordCodesList}/>)}
+                                                                   game={this} isEnemy={playerTeam === "white"}
+                                                                   codeList={playerTeam === "white"
+                                                                       ? enemyWordCodesList
+                                                                       : teamWordCodesList}/>)}
                             </div>
                             <div className="words-column-group">
                                 {[2, 3].map((index) => <WordColumn playerTeam={playerTeam}
                                                                    index={index} data={data}
-                                                                   game={this} isEnemy={false}
-                                                                   codeList={teamWordCodesList}/>)}
+                                                                   game={this} isEnemy={playerTeam === "white"}
+                                                                   codeList={playerTeam === "white"
+                                                                       ? enemyWordCodesList
+                                                                       : teamWordCodesList}/>)}
                             </div>
                         </div>
                         <div className="words-column-team">
                             <div className="words-column-group">
                                 {[0, 1].map((index) => <WordColumn playerTeam={playerTeam}
                                                                    index={index} data={data}
-                                                                   game={this} isEnemy={true}
-                                                                   codeList={enemyWordCodesList}/>)}
+                                                                   game={this} isEnemy={playerTeam === "black"}
+                                                                   codeList={playerTeam === "black"
+                                                                       ? enemyWordCodesList
+                                                                       : teamWordCodesList}/>)}
                             </div>
                             <div className="words-column-group">
                                 {[2, 3].map((index) => <WordColumn playerTeam={playerTeam}
                                                                    index={index} data={data}
-                                                                   game={this} isEnemy={true}
-                                                                   codeList={enemyWordCodesList}/>)}
+                                                                   game={this} isEnemy={playerTeam === "black"}
+                                                                   codeList={playerTeam === "black"
+                                                                       ? enemyWordCodesList
+                                                                       : teamWordCodesList}/>)}
                             </div>
                         </div>
                     </div>

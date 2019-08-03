@@ -301,7 +301,7 @@ body.dark-theme {
     font-family: rodchenkocttregular, sans-serif;
     display: flex;
     justify-content: center;
-    padding-top: 72px;
+    padding-top: 36px;
     text-transform: uppercase;
 }
 
@@ -806,4 +806,13 @@ body.dark-theme {
     width: 280px;
     height: 96px;
     zoom: 1.5;
+}
+
+.stand-code-word {
+    width: 129px;
+    vertical-align: middle;
+    height: 92px;
+    align-items: center;
+    display: flex;
+    justify-content: center;
 }
