@@ -203,14 +203,14 @@ class WordsInputPane extends React.Component {
             <div className={cs("words-input", color)}>
                 <div className="words-input-title">{!hack
                     ? <span>{
-                        color === "white" ? communicationIcon : ""}
+                        color === "black" ? communicationIcon : ""}
                         Communication
-                        {color === "black" ? communicationIcon : ""}
+                        {color === "white" ? communicationIcon : ""}
                 </span>
                     : <span>
-                        {color === "white" ? interceptionIcon : ""}
-                        Interception
                         {color === "black" ? interceptionIcon : ""}
+                        Interception
+                        {color === "white" ? interceptionIcon : ""}
                     </span>}
                 </div>
                 <div className="word-rows">
@@ -663,8 +663,8 @@ class Game extends React.Component {
                         [`${this.state.teamWin}-win`]: this.state.teamWin
                     })}>
                     <div className="main-row">
-                        <Team color="black" data={data} game={game}
-                              playerTeam={!isSpectator && playerTeam === "black"}/>
+                        <Team color="white" data={data} game={game}
+                              playerTeam={!isSpectator && playerTeam === "white"}/>
                         <div className={cs("stand", playerTeam)}>
                             {(data.player.words ? data.player.words.map((word, index) =>
                                 <div
@@ -672,8 +672,8 @@ class Game extends React.Component {
                                     <div className="stand-code-word">{hyphenate(word) || "?"}</div>
                                 </div>) : "")}
                         </div>
-                        <Team color="white" data={data} game={game}
-                              playerTeam={!isSpectator && playerTeam === "white"}/>
+                        <Team color="black" data={data} game={game}
+                              playerTeam={!isSpectator && playerTeam === "black"}/>
                     </div>
                     <div className="timer">{data.timed ? <span className="timer-time">
                                     {(new Date(!data.teamWin
@@ -683,12 +683,12 @@ class Game extends React.Component {
                                         : 0)).toUTCString().match(/(\d\d:\d\d )/)[0].trim()}
                                 </span> : ""}</div>
                     <div className="main-pane">
-                        <WordsInputPane data={data} game={game} color="black"
-                                        codes={playerTeam === "black" ? teamCodes : enemyCodes}
-                                        hack={playerTeam === "white"}/>
                         <WordsInputPane data={data} game={game} color="white"
                                         codes={playerTeam === "white" ? teamCodes : enemyCodes}
                                         hack={playerTeam === "black"}/>
+                        <WordsInputPane data={data} game={game} color="black"
+                                        codes={playerTeam === "black" ? teamCodes : enemyCodes}
+                                        hack={playerTeam === "white"}/>
                     </div>
                     <div className="ready-button" onClick={() => this.handleClickReady()}>
                         {readyButtonText}
@@ -706,16 +706,16 @@ class Game extends React.Component {
                             <div className="words-column-group">
                                 {[0, 1].map((index) => <WordColumn playerTeam={playerTeam}
                                                                    index={index} data={data}
-                                                                   game={this} isEnemy={playerTeam === "white"}
-                                                                   codeList={playerTeam === "white"
+                                                                   game={this} isEnemy={playerTeam === "black"}
+                                                                   codeList={playerTeam === "black"
                                                                        ? enemyWordCodesList
                                                                        : teamWordCodesList}/>)}
                             </div>
                             <div className="words-column-group">
                                 {[2, 3].map((index) => <WordColumn playerTeam={playerTeam}
                                                                    index={index} data={data}
-                                                                   game={this} isEnemy={playerTeam === "white"}
-                                                                   codeList={playerTeam === "white"
+                                                                   game={this} isEnemy={playerTeam === "black"}
+                                                                   codeList={playerTeam === "black"
                                                                        ? enemyWordCodesList
                                                                        : teamWordCodesList}/>)}
                             </div>
@@ -724,16 +724,16 @@ class Game extends React.Component {
                             <div className="words-column-group">
                                 {[0, 1].map((index) => <WordColumn playerTeam={playerTeam}
                                                                    index={index} data={data}
-                                                                   game={this} isEnemy={playerTeam === "black"}
-                                                                   codeList={playerTeam === "black"
+                                                                   game={this} isEnemy={playerTeam === "white"}
+                                                                   codeList={playerTeam === "white"
                                                                        ? enemyWordCodesList
                                                                        : teamWordCodesList}/>)}
                             </div>
                             <div className="words-column-group">
                                 {[2, 3].map((index) => <WordColumn playerTeam={playerTeam}
                                                                    index={index} data={data}
-                                                                   game={this} isEnemy={playerTeam === "black"}
-                                                                   codeList={playerTeam === "black"
+                                                                   game={this} isEnemy={playerTeam === "white"}
+                                                                   codeList={playerTeam === "white"
                                                                        ? enemyWordCodesList
                                                                        : teamWordCodesList}/>)}
                             </div>

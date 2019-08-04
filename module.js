@@ -148,14 +148,17 @@ function init(wsServer, path) {
                         startRound();
                     }
                 },
+                getNextPlayer = (player, color) => {
+                    const onlinePlayers = [...room[color]].filter((user) => room.onlinePlayers.has(user));
+                    let result = onlinePlayers[onlinePlayers.indexOf(player) + 1];
+                    if (!result)
+                        result = onlinePlayers[0];
+                    return result;
+                },
                 startRound = () => {
                     room.phase = 1;
-                    room.blackMaster = [...room.black][[...room.black].indexOf(room.blackMaster) + 1];
-                    if (!room.blackMaster)
-                        room.blackMaster = [...room.black][0];
-                    room.whiteMaster = [...room.white][[...room.white].indexOf(room.whiteMaster) + 1];
-                    if (!room.whiteMaster)
-                        room.whiteMaster = [...room.white][0];
+                    room.blackMaster = getNextPlayer(room.blackMaster, "black");
+                    room.whiteMaster = getNextPlayer(room.whiteMaster, "white");
                     room.readyPlayers.clear();
                     state.black.code = shuffleArray([1, 2, 3, 4]).slice(0, 3);
                     state.white.code = shuffleArray([1, 2, 3, 4]).slice(0, 3);
@@ -196,40 +199,42 @@ function init(wsServer, path) {
                 },
                 isEqualCodes = (codeA, codeB) => codeA.length && codeB.length && codeA.every((word, index) => word === codeB[index]),
                 endRound = () => {
-                    room.readyPlayers.clear();
-                    const round = {
-                        black: {
-                            codeWords: room.blackCodeWords,
-                            try: calcTry("black"),
-                            hackTry: calcTry("black", true),
-                            code: state.black.code
-                        },
-                        white: {
-                            codeWords: room.whiteCodeWords,
-                            try: calcTry("white"),
-                            hackTry: calcTry("white", true),
-                            code: state.white.code
-                        },
-                    };
-                    room.rounds.push(round);
-                    room.roundAnim = true;
-                    room.roundAnimSection = 0;
-                    room.roundAnimPhase = 0;
-                    update();
-                    animInterval = setInterval(() => {
-                        room.roundAnimPhase++;
-                        if (room.roundAnimPhase === 4) {
-                            if (room.roundAnimSection === 0) {
-                                room.roundAnimPhase = 0;
-                                room.roundAnimSection++;
-                            } else {
-                                room.roundAnim = false;
-                                clearInterval(animInterval);
-                                endRoundAnim();
-                            }
-                        }
+                    if (!room.roundAnim) {
+                        room.readyPlayers.clear();
+                        const round = {
+                            black: {
+                                codeWords: room.blackCodeWords,
+                                try: calcTry("black"),
+                                hackTry: calcTry("black", true),
+                                code: state.black.code
+                            },
+                            white: {
+                                codeWords: room.whiteCodeWords,
+                                try: calcTry("white"),
+                                hackTry: calcTry("white", true),
+                                code: state.white.code
+                            },
+                        };
+                        room.rounds.push(round);
+                        room.roundAnim = true;
+                        room.roundAnimSection = 0;
+                        room.roundAnimPhase = 0;
                         update();
-                    }, 1000);
+                        animInterval = setInterval(() => {
+                            room.roundAnimPhase++;
+                            if (room.roundAnimPhase === 4) {
+                                if (room.roundAnimSection === 0) {
+                                    room.roundAnimPhase = 0;
+                                    room.roundAnimSection++;
+                                } else {
+                                    room.roundAnim = false;
+                                    clearInterval(animInterval);
+                                    endRoundAnim();
+                                }
+                            }
+                            update();
+                        }, 1000);
+                    }
                 },
                 endRoundAnim = () => {
                     const round = room.rounds[room.rounds.length - 1];
@@ -413,8 +418,12 @@ function init(wsServer, path) {
                         const
                             color = room.black.has(user) ? "black" : "white",
                             guesses = state[color][!isHack ? "guesses" : "hackGuesses"];
-                        if (guesses[index].player === user)
+                        if (guesses[index].player === user) {
+                            guesses[index].votes.forEach((user) => {
+                                room.readyPlayers.delete(user);
+                            });
                             guesses.splice(index, 1);
+                        }
                         updateState();
                     }
                 },
@@ -477,7 +486,6 @@ function init(wsServer, path) {
                     update();
                 },
                 "toggle-paused": (user) => {
-                    clearInterval(animInterval);
                     if (user === room.hostId)
                         room.paused = !room.paused;
                     update();

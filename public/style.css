@@ -334,7 +334,7 @@ body.dark-theme {
 }
 
 .words-input.white {
-    background: #ececec;
+    background: #e3e3e3;
 }
 
 .words-input.black {
@@ -352,7 +352,7 @@ body.dark-theme {
 }
 
 .word-column.white {
-    background: #f5f6f6;
+    background: #f1f1f1;
 }
 
 .word-column.black {
@@ -426,8 +426,8 @@ body.dark-theme {
     padding: 3px 1px;
 }
 
-.spectators .player:nth-child(even) {
-    background: transparent;
+.players .player:nth-child(odd) {
+    background: #e2e2e2;
 }
 
 .word-input input {
@@ -467,7 +467,7 @@ body.dark-theme {
 }
 
 .white .word-row {
-    background: white;
+    background: #f1f1f1;
 }
 
 .black .word-row {
@@ -475,7 +475,7 @@ body.dark-theme {
 }
 
 .white .word-row:nth-child(even) {
-    background: #f7f7f7;
+    background: #e8e8e8;
 }
 
 .black .word-row:nth-child(even) {
@@ -587,7 +587,7 @@ body.dark-theme {
 }
 
 .word-column.white:nth-child(even) {
-    background: #ececec;
+    background: #e8e8e8;
 }
 
 .word-column.black:nth-child(even) {
@@ -736,7 +736,7 @@ body.dark-theme {
     }
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1280px) {
     .stand {
         display: none;
     }
@@ -838,9 +838,9 @@ body.dark-theme {
 }
 
 .black .words-input-title {
-    left: 21px;
+    right: 21px;
 }
 
 .white .words-input-title {
-    right: 21px;
+    left: 21px;
 }
