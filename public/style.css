@@ -426,8 +426,20 @@ body.dark-theme {
     padding: 3px 1px;
 }
 
-.players .player:nth-child(odd) {
+.white .players .player:nth-child(odd) {
+    background: #ededed;
+}
+
+.white .players .player:nth-child(even) {
+    background: #f4f4f4;
+}
+
+.black .players .player:nth-child(even) {
     background: #e2e2e2;
+}
+
+.black .players .player:nth-child(odd) {
+    background: #ededed;
 }
 
 .word-input input {
