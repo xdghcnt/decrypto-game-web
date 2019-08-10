@@ -405,11 +405,19 @@ class Game extends React.Component {
         this.correctSound = new Audio("/decrypto/media/correct.mp3");
         this.wrongSound = new Audio("/decrypto/media/wrong.mp3");
         this.masterNotifySound = new Audio("/decrypto/media/master_notify.mp3");
+        this.tumblerSound = new Audio("/decrypto/media/tumbler.mp3");
+        this.switchSound = new Audio("/decrypto/media/switch.mp3");
+        this.knobSound = new Audio("/decrypto/media/knob.mp3");
+        this.stickerSound = new Audio("/decrypto/media/sticker.mp3");
         this.timerSound.volume = 0.5;
         this.chimeSound.volume = 0.25;
         this.correctSound.volume = 0.5;
         this.wrongSound.volume = 0.1;
         this.tapSound.volume = 0.3;
+        this.tumblerSound.volume = 0.5;
+        this.switchSound.volume = 0.5;
+        this.knobSound.volume = 0.5;
+        this.stickerSound.volume = 0.5;
         window.hyphenate = createHyphenator(hyphenationPatternsRu);
         window.hyphenateEn = createHyphenator(hyphenationPatternsEnUs);
         this.tokenParams = {};
@@ -454,6 +462,14 @@ class Game extends React.Component {
             this.viewParams[`${color}-lamp-0`] = this.getRandomInt(2);
             this.viewParams[`${color}-lamp-1`] = this.getRandomInt(2);
         }
+        if (kind === "tumbler")
+            this.tumblerSound.play();
+        if (kind === "switch")
+            this.switchSound.play();
+        if (kind === "knob")
+            this.knobSound.play();
+        if (kind === "sticker")
+            this.stickerSound.play();
         this.setState(this.state);
     }
 
