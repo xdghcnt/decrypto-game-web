@@ -464,11 +464,11 @@ class Game extends React.Component {
         }
         if (kind === "tumbler")
             this.tumblerSound.play();
-        if (kind === "switch")
+        else if (kind === "switch")
             this.switchSound.play();
-        if (kind === "knob")
+        else if (kind === "knob")
             this.knobSound.play();
-        if (kind === "sticker")
+        else if (kind === "sticker" && this.viewParams[`${color}-sticker-`])
             this.stickerSound.play();
         this.setState(this.state);
     }
