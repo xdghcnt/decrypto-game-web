@@ -260,6 +260,7 @@ body.dark-theme {
     padding: 0 51px;
     box-sizing: border-box;
     align-self: center;
+    position: relative;
 }
 
 .stand.black {
@@ -423,7 +424,7 @@ body.dark-theme {
 
 .player {
     background: #f4f4f4;
-    padding: 3px 1px;
+    padding: 3px 4px;
 }
 
 .white .players .player:nth-child(odd) {
@@ -855,4 +856,142 @@ body.dark-theme {
 
 .white .words-input-title {
     left: 21px;
+}
+
+.stand-tumblers {
+    position: absolute;
+    top: 142px;
+    left: 82px;
+    display: flex;
+}
+
+.stand-tumblers-group {
+    display: flex;
+    margin-right: 106px;
+}
+
+.stand-tumbler {
+    width: 37px;
+    height: 51px;
+    margin-left: -14px;
+    background-size: cover;
+}
+
+.black.stand-tumbler-0 {
+    background-image: url(media/tumbler_black.png);
+}
+
+.white.stand-tumbler-0 {
+    background-image: url(media/tumbler_white.png);
+}
+
+.black.stand-tumbler-1 {
+    background-image: url(media/tumbler_black_down.png);
+}
+
+.white.stand-tumbler-1 {
+    background-image: url(media/tumbler_white_down.png);
+}
+
+.stand-lamps {
+    position: absolute;
+    right: 18px;
+    top: 20px;
+    display: flex;
+}
+
+.stand-lamp {
+    width: 24px;
+    height: 24px;
+    background-size: cover;
+    margin-right: -8px;
+    opacity: 0.7;
+}
+
+.stand-lamp-0 {
+    visibility: hidden;
+}
+
+.stand-lamp-ind-0 {
+    background-image: url(media/lamp1.png);
+}
+
+.stand-lamp-ind-1 {
+    background-image: url(media/lamp2.png);
+}
+
+.stand-switch {
+    position: absolute;
+    right: 17px;
+    width: 28px;
+    height: 29px;
+    bottom: 11px;
+    background-size: contain;
+}
+
+.black.stand-switch {
+    background-image: url(media/switch_black.png);
+}
+
+.white.stand-switch {
+    background-image: url(media/switch_white.png);
+}
+
+.black.stand-switch-1 {
+    background-image: url(media/switch_black_on.png);
+}
+
+.white.stand-switch-1 {
+    background-image: url(media/switch_white_on.png);
+}
+
+.stand-sticker {
+    position: absolute;
+    right: 71px;
+    bottom: 0;
+    width: 79px;
+    height: 71px;
+    background-size: cover;
+}
+
+.black.stand-sticker {
+    right: 78px;
+}
+
+.stand-sticker-0 {
+    opacity: 0;
+}
+
+.black.stand-sticker-1 {
+    background-image: url(media/sticker_black.png);
+}
+
+.white.stand-sticker-1 {
+    background-image: url(media/sticker_white.png);
+}
+
+.stand-knobs {
+    position: absolute;
+    top: 251px;
+    left: 330px;
+    display: flex;
+}
+
+.stand-knob {
+    width: 20px;
+    height: 20px;
+    margin-right: 20px;
+    background-size: cover;
+}
+
+.black.stand-knob {
+    background-image: url(media/knob_black.png);
+}
+
+.white.stand-knob {
+    background-image: url(media/knob_white.png);
+}
+
+.player.ready .player-color {
+    box-shadow: 0 0 0    3px #70d91d99;
 }

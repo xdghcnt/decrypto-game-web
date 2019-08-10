@@ -402,7 +402,18 @@ function init(wsServer, path) {
                             if (~guess.votes.indexOf(user))
                                 guess.votes.splice(guess.votes.indexOf(user), 1);
                         });
-                        if (guessList.every((item) => item.code.join() !== code.join())) {
+                        if (guessList.every((item, index) => {
+                            const result = item.code.join() !== code.join();
+                            if (!result && !~guessList[index].votes.indexOf(user)) {
+                                guessList.forEach((guess) => {
+                                    if (~guess.votes.indexOf(user))
+                                        guess.votes.splice(guess.votes.indexOf(user), 1);
+                                });
+                                guessList[index].votes.push(user);
+                                updateState();
+                            }
+                            return result;
+                        })) {
                             guessList.push({
                                 code,
                                 player: user,

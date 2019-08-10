@@ -26,7 +26,8 @@ class Player extends React.Component {
         return (
             <div className={cs("player", {
                 offline: !~data.onlinePlayers.indexOf(id),
-                self: id === data.userId
+                self: id === data.userId,
+                ready: data.phase === 2 && ~data.readyPlayers.indexOf(id)
             })}
                  onTouchStart={(e) => e.target.focus()}
                  data-playerId={id}>
@@ -412,10 +413,11 @@ class Game extends React.Component {
         window.hyphenate = createHyphenator(hyphenationPatternsRu);
         window.hyphenateEn = createHyphenator(hyphenationPatternsEnUs);
         this.tokenParams = {};
-        this.generateTokenParams();
+        this.viewParams = {};
+        this.generateViewParams();
     }
 
-    generateTokenParams() {
+    generateViewParams() {
         [0, 1].forEach((index) => {
             ["black", "white"].forEach((color) => {
                 ["fail", "hack"].forEach((kind) => {
@@ -423,6 +425,36 @@ class Game extends React.Component {
                 });
             });
         });
+        ["black", "white"].forEach((color) => {
+            Array(12).fill(null).forEach((mda, index) => {
+                this.viewParams[`${color}-tumbler-${index}`] = this.getRandomInt(2);
+            });
+            Array(4).fill(null).forEach((mda, index) => {
+                this.viewParams[`${color}-knob-${index}`] = this.getRandomInt(11);
+            });
+            Array(2).fill(null).forEach((mda, index) => {
+                this.viewParams[`${color}-lamp-${index}`] = this.getRandomInt(2);
+            });
+            this.viewParams[`${color}-switch-`] = this.getRandomInt(2);
+            this.viewParams[`${color}-sticker-`] = 0;
+        });
+    }
+
+    handleClickViewParam(color, kind, index) {
+        let state, newState;
+        state = newState = this.viewParams[`${color}-${kind}-${index}`] || this.viewParams[`${color}-${kind}-`];
+        if (~["tumbler", "switch"].indexOf(kind))
+            newState = (state ? 0 : 1);
+        else if (kind === "knob")
+            newState = this.getRandomInt(11);
+        else if (kind === "sticker" && !state && this.getRandomInt(10) === 9)
+            newState = 1;
+        this.viewParams[`${color}-${kind}-${index}`] = newState;
+        if (kind !== "sticker") {
+            this.viewParams[`${color}-lamp-0`] = this.getRandomInt(2);
+            this.viewParams[`${color}-lamp-1`] = this.getRandomInt(2);
+        }
+        this.setState(this.state);
     }
 
     handleClickToken(index, color, kind) {
@@ -430,14 +462,15 @@ class Game extends React.Component {
         this.setState(this.state);
     }
 
+    getRandomInt(max) {
+        return Math.floor(Math.random() * Math.floor(max));
+    }
+
     getRandomParams() {
-        const getRandomInt = (max) => {
-            return Math.floor(Math.random() * Math.floor(max));
-        };
         return {
-            left: `${getRandomInt(150)}px`,
-            top: `${getRandomInt(147)}px`,
-            transform: `rotate(${getRandomInt(360)}deg)`
+            left: `${this.getRandomInt(150)}px`,
+            top: `${this.getRandomInt(147)}px`,
+            transform: `rotate(${this.getRandomInt(360)}deg)`
         };
     }
 
@@ -652,7 +685,10 @@ class Game extends React.Component {
                         let prevTime = this.state.time,
                             time = prevTime - (new Date() - timeStart);
                         this.setState(Object.assign({}, this.state, {time: time}));
-                        if (this.state.timed && time < 6000 && ((Math.floor(prevTime / 1000) - Math.floor(time / 1000)) > 0) && !parseInt(localStorage.muteSounds))
+                        if (this.state.timed && time < 6000
+                            && ((Math.floor(prevTime / 1000) - Math.floor(time / 1000)) > 0)
+                            && !parseInt(localStorage.muteSounds)
+                            && !data.roundAnim)
                             this.timerSound.play();
                     }
                 }, 100);
@@ -671,6 +707,55 @@ class Game extends React.Component {
                                     className={cs("stand-code", `stand-code-${index}`)}>
                                     <div className="stand-code-word">{hyphenate(word) || "?"}</div>
                                 </div>) : "")}
+                            <div className="stand-controls">
+                                <div className="stand-tumblers">
+                                    {[0, 1, 2, 3].map((groupIndex) =>
+                                        <div className="stand-tumblers-group">{[0, 1, 2].map((tumbleIndex) => {
+                                            const index = groupIndex * 3 + tumbleIndex;
+                                            return <div
+                                                className={cs("stand-tumbler",
+                                                    playerTeam,
+                                                    `stand-tumbler-${game.viewParams[`${playerTeam}-tumbler-${index}`]}`)}
+                                                onClick={() => game.handleClickViewParam(playerTeam,
+                                                    "tumbler",
+                                                    index
+                                                )}/>;
+                                        })
+                                        }</div>)}
+                                </div>
+                                <div className="stand-knobs">{[0, 1, 2, 3].map((knobIndex) =>
+                                    <div
+                                        className={cs("stand-knob", playerTeam)}
+                                        style={{transform: `rotate(${game.viewParams[`${playerTeam}-knob-${knobIndex}`] * 30 - 155}deg)`}}
+                                        onClick={() => game.handleClickViewParam(playerTeam,
+                                            "knob",
+                                            knobIndex
+                                        )}/>)
+                                }</div>
+                                <div className="stand-lamps">{[0, 1].map((lampIndex) =>
+                                    <div
+                                        className={cs("stand-lamp",
+                                            playerTeam,
+                                            `stand-lamp-ind-${lampIndex}`,
+                                            `stand-lamp-${game.viewParams[`${playerTeam}-lamp-${lampIndex}`]}`)}/>)
+                                }</div>
+                                <div
+                                    className={cs("stand-switch",
+                                        playerTeam,
+                                        `stand-switch-${game.viewParams[`${playerTeam}-switch-`]}`)}
+                                    onClick={() => game.handleClickViewParam(playerTeam,
+                                        "switch",
+                                        ""
+                                    )}/>
+                                <div
+                                    className={cs("stand-sticker",
+                                        playerTeam,
+                                        `stand-sticker-${game.viewParams[`${playerTeam}-sticker-`]}`)}
+                                    onClick={() => game.handleClickViewParam(playerTeam,
+                                        "sticker",
+                                        ""
+                                    )}/>
+                            </div>
                         </div>
                         <Team color="black" data={data} game={game}
                               playerTeam={!isSpectator && playerTeam === "black"}/>
