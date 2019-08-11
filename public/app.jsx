@@ -40,7 +40,7 @@ class Player extends React.Component {
                         title="Encoder">save</span>
                     : ""}
                 {(~data.blackSlotPlayers.indexOf(id)) ? (
-                    <span className="black-slot-button">&nbsp;{blackSlotButton}</span>
+                    <span className="black-slot-button">{blackSlotButton}</span>
                 ) : ""}
                 <div className="player-host-controls">
                     {(data.hostId === data.userId && data.userId !== id) ? (
@@ -202,7 +202,8 @@ class WordsInputPane extends React.Component {
             interceptionIcon = <span className="material-icons">lock</span>;
         return (
             <div className={cs("words-input", color)}>
-                <div className="words-input-title">{!hack
+                <div
+                    className="words-input-title">{(!hack && (!isSpectator || ~data.blackSlotPlayers.indexOf(data.userId)))
                     ? <span>{
                         color === "black" ? communicationIcon : ""}
                         Communication
@@ -221,7 +222,7 @@ class WordsInputPane extends React.Component {
                                 {(data.phase === 1 && data[`${color}Master`] === data.userId)
                                     ? (!~data.readyPlayers.indexOf(data.userId)
                                         ? (<input placeholder={data.player.words[data.player.code[index] - 1]}
-                                                  onChange={(evt) => game.handleChangCodeWord(index, evt.target.value)}
+                                                  onChange={(evt) => game.handleChangeCodeWord(index, evt.target.value)}
                                                   defaultValue={data.player.codeWords && data.player.codeWords[index]}/>)
                                         : data.player.codeWords[index])
                                     : ((data[`${color}CodeWords`] && data[`${color}CodeWords`][index]) || emptyHolder)}
@@ -266,7 +267,8 @@ class WordsInputPane extends React.Component {
                         <div className="add-guess-inputs">
                             {[0, 1, 2].map((index) =>
                                 <div
-                                    onClick={() => game.toggleGuessInput(index, hack)}
+                                    onContextMenu={(evt) => evt.preventDefault()}
+                                    onMouseUp={(evt) => game.toggleGuessInput(index, hack, evt)}
                                     className="guess-input">{data.inputs[!hack ? "guess" : "hack"][index]}</div>)}
                         </div>
                     </div>
@@ -300,10 +302,12 @@ class WordColumn extends React.Component {
                         ? hasWords
                             ? (!isEnemy
                                 ? (data.player.words[index])
-                                : <input
-                                    placeholder="<Unknown>"
-                                    onChange={(evt) => game.handleChangeWordGuess(index, evt.target.value)}
-                                    value={data.player.wordGuesses[index]}/>)
+                                : !~data.blackSlotPlayers.indexOf(data.userId)
+                                    ? <input
+                                        placeholder="<Unknown>"
+                                        onChange={(evt) => game.handleChangeWordGuess(index, evt.target.value)}
+                                        value={data.player.wordGuesses[index]}/>
+                                    : data.player.wordGuesses[index])
                             : unknownHolder
                         : (!isEnemy
                             ? `${(data[`${enemyTeam}WordGuesses`][index]) || "-"} (${data[`${playerTeam}Words`][index]})`
@@ -355,6 +359,11 @@ class Game extends React.Component {
                 && ((this.state.blackMaster !== this.state.userId && state.blackMaster === this.state.userId)
                     || (this.state.whiteMaster !== this.state.userId && state.whiteMaster === this.state.userId)))
                 this.masterNotifySound.play();
+            if (!this.isMuted() && this.state.inited
+                && (this.state.blackMaster !== this.state.userId
+                    && this.state.whiteMaster !== this.state.userId
+                    && state.phase === 2 && this.state.phase === 1))
+                this.teamNotifySound.play();
             this.setState(Object.assign(this.state, {
                 userId: this.userId,
                 player: this.state.player || {},
@@ -405,6 +414,7 @@ class Game extends React.Component {
         this.correctSound = new Audio("/decrypto/media/correct.mp3");
         this.wrongSound = new Audio("/decrypto/media/wrong.mp3");
         this.masterNotifySound = new Audio("/decrypto/media/master_notify.mp3");
+        this.teamNotifySound = new Audio("/decrypto/media/team_notify.mp3");
         this.tumblerSound = new Audio("/decrypto/media/tumbler.mp3");
         this.switchSound = new Audio("/decrypto/media/switch.mp3");
         this.knobSound = new Audio("/decrypto/media/knob.mp3");
@@ -412,6 +422,8 @@ class Game extends React.Component {
         this.timerSound.volume = 0.5;
         this.chimeSound.volume = 0.25;
         this.correctSound.volume = 0.5;
+        this.masterNotifySound.volume = 0.5;
+        this.teamNotifySound.volume = 0.5;
         this.wrongSound.volume = 0.1;
         this.tapSound.volume = 0.3;
         this.tumblerSound.volume = 0.5;
@@ -462,14 +474,16 @@ class Game extends React.Component {
             this.viewParams[`${color}-lamp-0`] = this.getRandomInt(2);
             this.viewParams[`${color}-lamp-1`] = this.getRandomInt(2);
         }
-        if (kind === "tumbler")
-            this.tumblerSound.play();
-        else if (kind === "switch")
-            this.switchSound.play();
-        else if (kind === "knob")
-            this.knobSound.play();
-        else if (kind === "sticker" && this.viewParams[`${color}-sticker-`])
-            this.stickerSound.play();
+        if (!this.isMuted()) {
+            if (kind === "tumbler")
+                this.tumblerSound.play();
+            else if (kind === "switch")
+                this.switchSound.play();
+            else if (kind === "knob")
+                this.knobSound.play();
+            else if (kind === "sticker" && this.viewParams[`${color}-sticker-`])
+                this.stickerSound.play();
+        }
         this.setState(this.state);
     }
 
@@ -490,12 +504,19 @@ class Game extends React.Component {
         };
     }
 
-    toggleGuessInput(index, hack) {
+    toggleGuessInput(index, hack, evt) {
         const inputs = this.state.inputs[!hack ? "guess" : "hack"];
-        if (inputs[index] === 4)
-            inputs[index] = 1;
-        else
-            inputs[index]++;
+        if (evt.button !== 2) {
+            if (inputs[index] === 4)
+                inputs[index] = 1;
+            else
+                inputs[index]++;
+        } else {
+            if (inputs[index] === 1)
+                inputs[index] = 4;
+            else
+                inputs[index]--;
+        }
         this.setState(this.state);
     }
 
@@ -528,6 +549,10 @@ class Game extends React.Component {
         this.socket.emit("spectators-join");
     }
 
+    handleJoinBlackSlot(color) {
+        this.socket.emit("black-slot-join", color);
+    }
+
     handleGiveHost(user) {
         this.socket.emit("give-host", user);
     }
@@ -536,7 +561,8 @@ class Game extends React.Component {
         this.socket.emit("remove-player", user);
     }
 
-    handleGiveBlackSlot(user) {
+    handleGiveBlackSlot(user, evt) {
+        evt.stopPropagation();
         this.socket.emit("toggle-black-slot", user);
     }
 
@@ -584,13 +610,13 @@ class Game extends React.Component {
     }
 
     handleChangeTime(value, type) {
-        this.debouncedEmit("set-time", type, value || 1);
+        this.socket.emit("set-time", type, value || 1);
     }
 
-    handleChangCodeWord(index, word) {
+    handleChangeCodeWord(index, word) {
         this.state.player.codeWords[index] = word;
         this.setState(this.state);
-        this.debouncedEmit("set-code-word", index, word);
+        this.socket.emit("set-code-word", index, word);
     }
 
     handleClickReady() {
@@ -617,7 +643,7 @@ class Game extends React.Component {
     handleChangeWordGuess(index, guess) {
         this.state.player.wordGuesses[index] = guess;
         this.setState(this.state);
-        this.debouncedEmit("set-word-guess", index, guess);
+        this.socket.emit("set-word-guess", index, guess);
     }
 
     constructor() {
@@ -628,7 +654,7 @@ class Game extends React.Component {
     }
 
     calcTry(team, hack) {
-        if (!~this.state.spectators.indexOf(this.state.userId) && this.state.player.guesses && (this.state[`${team}Master`] !== this.state.userId || hack)) {
+        if (this.state.player.guesses && (this.state[`${team}Master`] !== this.state.userId || hack)) {
             const guesses = this.state.player[!hack ? "guesses" : "hackGuesses"];
             if (!guesses || guesses.length === 0 || guesses[0].stub)
                 return [];
@@ -659,7 +685,7 @@ class Game extends React.Component {
                 parentDir = location.pathname.match(/(.+?)\//)[1],
                 notEnoughPlayers = data.phase === 0 && (data.black.length < 2 || data.white.length < 2),
                 isSpectator = !!~data.spectators.indexOf(user),
-                playerTeam = ~data.black.indexOf(user) ? "black" : "white",
+                playerTeam = (~data.black.indexOf(user) || ~data.blackSpectators.indexOf(user)) ? "black" : "white",
                 enemyTeam = playerTeam === "white" ? "black" : "white",
                 isMaster = data[`${playerTeam}Master`] === data.userId,
                 teamWordCodesList = [[], [], [], []],
@@ -874,6 +900,21 @@ class Game extends React.Component {
                             }
                         </div>
                     </div>
+                    {~data.blackSlotPlayers.indexOf(data.userId)
+                        ? <div
+                            className="spectators switch-black-slots">
+                            <div className="black-slot-type"
+                                 onClick={() => game.handleJoinBlackSlot("white")}>
+                                White{~data.whiteSpectators.indexOf(data.userId) ?
+                                <i className="material-icons">visibility</i> : ""}
+                            </div>
+                            <div className="black-slot-type"
+                                 onClick={() => game.handleJoinBlackSlot("black")}>
+                                Black{~data.blackSpectators.indexOf(data.userId) ?
+                                <i className="material-icons">visibility</i> : ""}
+                            </div>
+                        </div>
+                        : ""}
                     <div className="host-controls" onTouchStart={(e) => e.target.focus()}>
                         {data.timed ? (<div className="host-controls-menu">
                             <div className="little-controls">

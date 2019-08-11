@@ -123,7 +123,10 @@ function init(wsServer, path) {
                     } else if (room.blackSpectators.has(user)) {
                         send(user, "player-state", state.black);
                     } else {
-                        send(user, "player-state", {});
+                        send(user, "player-state", {
+                            guesses: state.black.hackGuesses,
+                            hackGuesses: state.white.hackGuesses,
+                        });
                     }
                 },
                 updateState = () => [...room.onlinePlayers].forEach(sendState),
@@ -323,6 +326,9 @@ function init(wsServer, path) {
                     }
                 },
                 leaveTeams = (user, keepSpectator) => {
+                    room.blackSlotPlayers.delete(user);
+                    room.blackSpectators.delete(user);
+                    room.whiteSpectators.delete(user);
                     room.black.delete(user);
                     room.white.delete(user);
                     if (!keepSpectator)
@@ -547,7 +553,7 @@ function init(wsServer, path) {
                     if (user === room.hostId && room.spectators.has(playerId)) {
                         if (!room.blackSlotPlayers.has(playerId)) {
                             room.blackSlotPlayers.add(playerId);
-                            room.blackSpectators.add(playerId);
+                            room.whiteSpectators.add(playerId);
                         } else {
                             room.blackSlotPlayers.delete(playerId);
                             room.blackSpectators.delete(playerId);
@@ -569,6 +575,15 @@ function init(wsServer, path) {
                     if (!room.teamsLocked) {
                         leaveTeams(user);
                         room.spectators.add(user);
+                        update();
+                        sendState(user);
+                    }
+                },
+                "black-slot-join": (user, color) => {
+                    if (room.blackSlotPlayers.has(user)) {
+                        room.blackSpectators.delete(user);
+                        room.whiteSpectators.delete(user);
+                        room[`${color}Spectators`].add(user);
                         update();
                         sendState(user);
                     }
