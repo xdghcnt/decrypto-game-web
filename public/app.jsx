@@ -26,12 +26,17 @@ class Player extends React.Component {
         return (
             <div className={cs("player", {
                 offline: !~data.onlinePlayers.indexOf(id),
-                self: id === data.userId,
-                ready: data.phase === 2 && ~data.readyPlayers.indexOf(id)
+                self: id === data.userId
             })}
                  onTouchStart={(e) => e.target.focus()}
                  data-playerId={id}>
-                <div className="player-color" style={{background: data.playerColors[id]}}
+                <div className="player-color"
+                     style={{
+                         background: data.playerColors[id],
+                         "box-shadow": (data.phase === 2 && ~data.readyPlayers.indexOf(id))
+                             ? `0 0 0 3px ${data.playerColors[id]}85`
+                             : "none"
+                     }}
                      onClick={(evt) => !evt.stopPropagation() && (id === data.userId) && game.handleChangeColor()}/>
                 <span className="player-name">{data.playerNames[id]}&nbsp;</span>
                 {(data.whiteMaster === id || data.blackMaster === id)

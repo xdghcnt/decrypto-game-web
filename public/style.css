@@ -992,10 +992,6 @@ body.dark-theme {
     background-image: url(media/knob_white.png);
 }
 
-.player.ready .player-color {
-    box-shadow: 0 0 0    3px #70d91d99;
-}
-
 .black-slot-type {
     cursor: pointer;
 }
