@@ -752,7 +752,7 @@ class Game extends React.Component {
                     })}>
                     <div className="main-row">
                         <Team color="white" data={data} game={game}
-                              playerTeam={!isSpectator && playerTeam === "white"}/>
+                              playerTeam={playerTeam === "white"}/>
                         <div className={cs("stand", playerTeam)}>
                             {(data.player.words ? data.player.words.map((word, index) =>
                                 <div
@@ -810,7 +810,7 @@ class Game extends React.Component {
                             </div>
                         </div>
                         <Team color="black" data={data} game={game}
-                              playerTeam={!isSpectator && playerTeam === "black"}/>
+                              playerTeam={playerTeam === "black"}/>
                     </div>
                     <div className="timer">{data.timed ? <span className="timer-time">
                                     {(new Date(!data.teamWin
