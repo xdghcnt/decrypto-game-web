@@ -82,9 +82,10 @@ class Team extends React.Component {
         const
             data = this.props.data,
             color = this.props.color,
+            playerTeam = this.props.playerTeam,
             game = this.props.game,
-            showCode = (data.userId === data.blackMaster || data.userId === data.whiteMaster)
-                || ~data.blackSlotPlayers.indexOf(data.userId);
+            showCode = playerTeam && ((data.userId === data.blackMaster || data.userId === data.whiteMaster)
+                || ~data.blackSlotPlayers.indexOf(data.userId));
         return (
             <div className={cs("team", color)}>
                 <div className={cs("code", {
@@ -750,7 +751,8 @@ class Game extends React.Component {
                         [`${this.state.teamWin}-win`]: this.state.teamWin
                     })}>
                     <div className="main-row">
-                        <Team color="white" data={data} game={game}/>
+                        <Team color="white" data={data} game={game}
+                              playerTeam={!isSpectator && playerTeam === "white"}/>
                         <div className={cs("stand", playerTeam)}>
                             {(data.player.words ? data.player.words.map((word, index) =>
                                 <div
@@ -807,7 +809,8 @@ class Game extends React.Component {
                                     )}/>
                             </div>
                         </div>
-                        <Team color="black" data={data} game={game}/>
+                        <Team color="black" data={data} game={game}
+                              playerTeam={!isSpectator && playerTeam === "black"}/>
                     </div>
                     <div className="timer">{data.timed ? <span className="timer-time">
                                     {(new Date(!data.teamWin
