@@ -84,7 +84,8 @@ class Team extends React.Component {
             color = this.props.color,
             playerTeam = this.props.playerTeam,
             game = this.props.game,
-            showCode = playerTeam && (data.userId === data.blackMaster || data.userId === data.whiteMaster);
+            showCode = playerTeam && ((data.userId === data.blackMaster || data.userId === data.whiteMaster)
+                || ~data.blackSlotPlayers.indexOf(data.userId));
         return (
             <div className={cs("team", color)}>
                 <div className={cs("code", {
@@ -369,6 +370,8 @@ class Game extends React.Component {
                     && this.state.whiteMaster !== this.state.userId
                     && state.phase === 2 && this.state.phase === 1))
                 this.teamNotifySound.play();
+            if (!this.isMuted() && this.state.inited && (this.state.teamWin === null && state.teamWin != null))
+                this.gameEndSound.play();
             this.setState(Object.assign(this.state, {
                 userId: this.userId,
                 player: this.state.player || {},
@@ -424,17 +427,19 @@ class Game extends React.Component {
         this.switchSound = new Audio("/decrypto/media/switch.mp3");
         this.knobSound = new Audio("/decrypto/media/knob.mp3");
         this.stickerSound = new Audio("/decrypto/media/sticker.mp3");
+        this.gameEndSound = new Audio("/decrypto/media/game_end.mp3");
         this.timerSound.volume = 0.5;
         this.chimeSound.volume = 0.25;
         this.correctSound.volume = 0.5;
         this.masterNotifySound.volume = 0.5;
-        this.teamNotifySound.volume = 0.5;
+        this.teamNotifySound.volume = 0.2;
         this.wrongSound.volume = 0.1;
         this.tapSound.volume = 0.3;
         this.tumblerSound.volume = 0.5;
         this.switchSound.volume = 0.5;
         this.knobSound.volume = 0.5;
         this.stickerSound.volume = 0.5;
+        this.gameEndSound.volume = 0.5;
         window.hyphenate = createHyphenator(hyphenationPatternsRu);
         window.hyphenateEn = createHyphenator(hyphenationPatternsEnUs);
         this.tokenParams = {};
