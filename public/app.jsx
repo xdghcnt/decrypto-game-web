@@ -370,6 +370,9 @@ class Game extends React.Component {
                     && this.state.whiteMaster !== this.state.userId
                     && state.phase === 2 && this.state.phase === 1))
                 this.teamNotifySound.play();
+            if (!this.isMuted() && this.state.inited
+                && state.phase === 1 && this.state.readyPlayers.length === 0 && state.readyPlayers.length === 1)
+                this.masterReadySound.play();
             if (!this.isMuted() && this.state.inited && (this.state.teamWin === null && state.teamWin != null))
                 this.gameEndSound.play();
             this.setState(Object.assign(this.state, {
@@ -428,6 +431,7 @@ class Game extends React.Component {
         this.knobSound = new Audio("/decrypto/media/knob.mp3");
         this.stickerSound = new Audio("/decrypto/media/sticker.mp3");
         this.gameEndSound = new Audio("/decrypto/media/game_end.mp3");
+        this.masterReadySound = new Audio("/decrypto/media/master_ready.mp3");
         this.timerSound.volume = 0.5;
         this.chimeSound.volume = 0.25;
         this.correctSound.volume = 0.5;
@@ -440,6 +444,7 @@ class Game extends React.Component {
         this.knobSound.volume = 0.5;
         this.stickerSound.volume = 0.5;
         this.gameEndSound.volume = 0.5;
+        this.masterReadySound.volume = 0.2;
         window.hyphenate = createHyphenator(hyphenationPatternsRu);
         window.hyphenateEn = createHyphenator(hyphenationPatternsEnUs);
         this.tokenParams = {};
