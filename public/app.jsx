@@ -84,14 +84,21 @@ class Team extends React.Component {
             color = this.props.color,
             playerTeam = this.props.playerTeam,
             game = this.props.game,
-            showCode = playerTeam && ((data.userId === data.blackMaster || data.userId === data.whiteMaster)
-                || ~data.blackSlotPlayers.indexOf(data.userId));
+            showCode = data.teamWin !== null
+                || (playerTeam && ((data.userId === data.blackMaster || data.userId === data.whiteMaster)
+                    || ~data.blackSlotPlayers.indexOf(data.userId)));
         return (
             <div className={cs("team", color)}>
                 <div className={cs("code", {
                     "active": showCode
                 })}>
-                    {showCode ? data.player.code && data.player.code.join(".") : ""}
+                    {showCode
+                        ? (data.teamWin == null
+                            ? data.player.code && data.player.code.join(".")
+                            : (data.teamWin === color
+                                ? "WIN"
+                                : "LOSE"))
+                        : ""}
                 </div>
                 <div className="players">
                     {data[color].map((id) => <Player id={id} data={data} game={game}/>)}
@@ -225,7 +232,7 @@ class WordsInputPane extends React.Component {
                     {[0, 1, 2].map((index) => {
                             return <div className="word-row">
                                 <div className="word-input">
-                                    {(data.phase === 1 && data[`${color}Master`] === data.userId)
+                                    {(data.phase === 1 && data[`${color}Master`] === data.userId && data.player.words)
                                         ? (!~data.readyPlayers.indexOf(data.userId)
                                             ? (<input placeholder={data.player.words[data.player.code[index] - 1]}
                                                       onChange={(evt) => game.handleChangeCodeWord(index, evt.target.value)}
@@ -381,8 +388,12 @@ class Game extends React.Component {
             if (!this.isMuted() && this.state.inited
                 && state.phase === 1 && this.state.readyPlayers.length === 0 && state.readyPlayers.length === 1)
                 this.masterReadySound.play();
-            if (!this.isMuted() && this.state.inited && (this.state.teamWin === null && state.teamWin != null))
+            if (!this.isMuted() && this.state.inited && (this.state.teamWin === null && state.teamWin != null)) {
+                this.gameEndSignalSound.play();
                 this.gameEndSound.play();
+            }
+            if (!this.isMuted() && this.state.inited && (this.state.phase === 0 && state.phase !== 0))
+                this.gameStartSound.play();
             this.setState(Object.assign(this.state, {
                 userId: this.userId,
                 player: this.state.player || {},
@@ -438,20 +449,24 @@ class Game extends React.Component {
         this.switchSound = new Audio("/decrypto/media/switch.mp3");
         this.knobSound = new Audio("/decrypto/media/knob.mp3");
         this.stickerSound = new Audio("/decrypto/media/sticker.mp3");
+        this.gameStartSound = new Audio("/decrypto/media/game_start.mp3");
         this.gameEndSound = new Audio("/decrypto/media/game_end.mp3");
+        this.gameEndSignalSound = new Audio("/decrypto/media/game_end_signal.mp3");
         this.masterReadySound = new Audio("/decrypto/media/master_ready.mp3");
         this.timerSound.volume = 0.5;
         this.chimeSound.volume = 0.25;
-        this.correctSound.volume = 0.5;
+        this.correctSound.volume = 0.3;
         this.masterNotifySound.volume = 0.5;
         this.teamNotifySound.volume = 0.2;
-        this.wrongSound.volume = 0.1;
+        this.wrongSound.volume = 0.07;
         this.tapSound.volume = 0.3;
         this.tumblerSound.volume = 0.5;
         this.switchSound.volume = 0.5;
         this.knobSound.volume = 0.5;
         this.stickerSound.volume = 0.5;
-        this.gameEndSound.volume = 0.5;
+        this.gameStartSound.volume = 0.3;
+        this.gameEndSound.volume = 0.25;
+        this.gameEndSignalSound.volume = 1.0;
         this.masterReadySound.volume = 0.2;
         window.hyphenate = createHyphenator(hyphenationPatternsRu);
         window.hyphenateEn = createHyphenator(hyphenationPatternsEnUs);
@@ -918,6 +933,13 @@ class Game extends React.Component {
                     </div>
                     {data.roundAnim
                         ? <div className="round-anim">
+                            <div className={cs("round-code", animTeam)}>
+                                <div className={cs("code", {
+                                    active: data.roundAnimPhase > 0
+                                })}>
+                                    {data.rounds[data.rounds.length - 1][animTeam].code.slice(0, data.roundAnimPhase).join(".")}
+                                </div>
+                            </div>
                             <RoundTable data={data} game={this} round={data.rounds[data.rounds.length - 1][animTeam]}
                                         roundNum={data.rounds.length - 1} isEnemy={animTeam !== playerTeam}
                                         color={animTeam} isRoundAnim={true}/>

@@ -261,7 +261,6 @@ function init(wsServer, path) {
                 endGame = () => {
                     room.paused = true;
                     room.phase = 0;
-                    room.teamsLocekd = false;
                     clearInterval(timerInterval);
                     room.teamWin = "tie";
                     if (room.blackFailCount === 2
