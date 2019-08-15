@@ -222,21 +222,24 @@ class WordsInputPane extends React.Component {
                     </span>}
                 </div>
                 <div className="word-rows">
-                    {[0, 1, 2].map((index) =>
-                        <div className="word-row">
-                            <div className="word-input">
-                                {(data.phase === 1 && data[`${color}Master`] === data.userId)
-                                    ? (!~data.readyPlayers.indexOf(data.userId)
-                                        ? (<input placeholder={data.player.words[data.player.code[index] - 1]}
-                                                  onChange={(evt) => game.handleChangeCodeWord(index, evt.target.value)}
-                                                  defaultValue={data.player.codeWords && data.player.codeWords[index]}/>)
-                                        : data.player.codeWords[index])
-                                    : ((data[`${color}CodeWords`] && data[`${color}CodeWords`][index]) || emptyHolder)}
-                            </div>
-                            <div className="code-input">
-                                {codes[index] || "-"}
-                            </div>
-                        </div>
+                    {[0, 1, 2].map((index) => {
+                            return <div className="word-row">
+                                <div className="word-input">
+                                    {(data.phase === 1 && data[`${color}Master`] === data.userId)
+                                        ? (!~data.readyPlayers.indexOf(data.userId)
+                                            ? (<input placeholder={data.player.words[data.player.code[index] - 1]}
+                                                      onChange={(evt) => game.handleChangeCodeWord(index, evt.target.value)}
+                                                      defaultValue={data.player.codeWords && data.player.codeWords[index]}/>)
+                                            : data.player.codeWords[index])
+                                        : !(data.teamAnimPhase != null && data.teamAnimPhase < index)
+                                            ? ((data[`${color}CodeWords`] && data[`${color}CodeWords`][index]) || emptyHolder)
+                                            : emptyHolder}
+                                </div>
+                                <div className="code-input">
+                                    {codes[index] || "-"}
+                                </div>
+                            </div>;
+                        }
                     )}
                 </div>
                 {(data.player[!hack ? "guesses" : "hackGuesses"] || []).map((guess, index) =>
@@ -266,7 +269,9 @@ class WordsInputPane extends React.Component {
                         : <div className="guess guess-stub">?</div>
                 )}
                 {!isSpectator && (data.phase === 2 && (data[`${color}Master`] !== data.userId || hack) && (data.rounds.length || !hack))
-                    ? <div className="add-guess">
+                    ? <div className={cs("add-guess", {
+                        hidden: data.teamAnimPhase != null && data.teamAnimPhase < 3
+                    })}>
                         <div className="add-guess-button" onClick={() => game.handleClickAddGuess(hack)}>
                             <span className="material-icons">add_box</span>
                         </div>
@@ -365,11 +370,14 @@ class Game extends React.Component {
                 && ((this.state.blackMaster !== this.state.userId && state.blackMaster === this.state.userId)
                     || (this.state.whiteMaster !== this.state.userId && state.whiteMaster === this.state.userId)))
                 this.masterNotifySound.play();
-            if (!this.isMuted() && this.state.inited
+            if (this.state.inited
                 && (this.state.blackMaster !== this.state.userId
                     && this.state.whiteMaster !== this.state.userId
-                    && state.phase === 2 && this.state.phase === 1))
-                this.teamNotifySound.play();
+                    && state.phase === 2 && this.state.phase === 1)) {
+                if (!this.isMuted())
+                    this.teamNotifySound.play();
+                this.startTeamAnim();
+            }
             if (!this.isMuted() && this.state.inited
                 && state.phase === 1 && this.state.readyPlayers.length === 0 && state.readyPlayers.length === 1)
                 this.masterReadySound.play();
@@ -450,6 +458,20 @@ class Game extends React.Component {
         this.tokenParams = {};
         this.viewParams = {};
         this.generateViewParams();
+    }
+
+    startTeamAnim() {
+        this.state.teamAnimPhase = 0;
+        this.setState(this.state);
+        clearInterval(this.teamAnimInterval);
+        this.teamAnimInterval = setInterval(() => {
+            this.state.teamAnimPhase++;
+            if (this.state.teamAnimPhase === 4) {
+                clearInterval(this.teamAnimInterval);
+                this.state.teamAnimPhase = null;
+            }
+            this.setState(this.state);
+        }, 800);
     }
 
     generateViewParams() {

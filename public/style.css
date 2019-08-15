@@ -1009,3 +1009,7 @@ body.dark-theme {
     height: auto;
     width: 59px;
 }
+
+.add-guess.hidden {
+    display: none;
+}
