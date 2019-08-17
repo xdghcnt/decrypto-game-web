@@ -60,6 +60,7 @@ body.dark-theme {
     cursor: default;
     text-align: right;
     z-index: 2;
+    box-shadow: 0 0 4px 1px #737373;
 }
 
 .little-controls {
