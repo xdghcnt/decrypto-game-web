@@ -627,7 +627,9 @@ class Game extends React.Component {
     }
 
     handleClickStart() {
-        if (this.state.phase === 0 || this.state.teamWin !== null || confirm("Game will be aborted. Are you sure?"))
+        if (this.state.phase !== 0)
+            popup.confirm({content: "Game will be aborted. Are you sure?"}, (evt) => evt.proceed && this.socket.emit("start-game"));
+        else
             this.socket.emit("start-game");
     }
 
@@ -721,6 +723,13 @@ class Game extends React.Component {
     toggleRoundsLocked() {
         this.state.roundsLocked = !this.state.roundsLocked;
         this.setState(this.state);
+    }
+
+    handleClickShuffle() {
+        if (this.state.phase !== 0)
+            popup.confirm({content: "Game will be aborted. Are you sure?"}, (evt) => evt.proceed && this.socket.emit("shuffle-players"));
+        else
+            this.socket.emit("shuffle-players");
     }
 
     render() {
@@ -997,6 +1006,12 @@ class Game extends React.Component {
                                                                                && this.handleChangeTime(evt.target.valueAsNumber, "team")}
                                         />) : (<span className="value">{this.state.teamTime}</span>)}
                                     </div>
+                                    {(isHost && data.paused) ? (
+                                        <div className="shuffle-players settings-button"
+                                             onClick={() => this.handleClickShuffle()}><i
+                                            title="shuffle players"
+                                            className="material-icons">casino</i>
+                                        </div>) : ""}
                                 </div>
                             </div>
                         </div>) : ""}

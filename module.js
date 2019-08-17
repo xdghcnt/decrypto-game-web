@@ -132,24 +132,42 @@ function init(wsServer, path) {
                 updateState = () => [...room.onlinePlayers].forEach(sendState),
                 startGame = () => {
                     if (room.black.size > 1 && room.white.size > 1) {
-                        room.roundAnim = false;
-                        clearInterval(animInterval);
-                        room.whiteFailCount = 0;
-                        room.whiteHackCount = 0;
-                        room.blackFailCount = 0;
-                        room.blackHackCount = 0;
-                        room.teamWin = null;
-                        room.teamsLocked = true;
-                        room.rounds = [];
+                        resetGame();
                         if (room.timed)
                             room.paused = false;
-                        shuffleArray(defaultCodeWords);
                         state.black.words = defaultCodeWords.slice(0, 4);
                         state.white.words = defaultCodeWords.slice(4, 8);
-                        state.black.wordGuesses = ["", "", "", ""];
-                        state.white.wordGuesses = ["", "", "", ""];
+                        shuffleArray(defaultCodeWords);
                         startRound();
                     }
+                },
+                resetGame = () => {
+                    room.paused = true;
+                    room.phase = 0;
+                    room.roundAnim = false;
+                    clearInterval(timerInterval);
+                    clearInterval(animInterval);
+                    room.whiteFailCount = 0;
+                    room.whiteHackCount = 0;
+                    room.blackFailCount = 0;
+                    room.blackHackCount = 0;
+                    room.teamWin = null;
+                    room.teamsLocked = true;
+                    room.rounds = [];
+                    state.black.wordGuesses = ["", "", "", ""];
+                    state.white.wordGuesses = ["", "", "", ""];
+                    resetRound();
+                },
+                resetRound = () => {
+                    room.readyPlayers.clear();
+                    state.black.codeWords = [];
+                    state.white.codeWords = [];
+                    room.blackCodeWords = [];
+                    room.whiteCodeWords = [];
+                    state.black.guesses = [];
+                    state.white.guesses = [];
+                    state.black.hackGuesses = [];
+                    state.white.hackGuesses = [];
                 },
                 getNextPlayer = (player, color) => {
                     const onlinePlayers = [...room[color]].filter((user) => room.onlinePlayers.has(user));
@@ -162,17 +180,9 @@ function init(wsServer, path) {
                     room.phase = 1;
                     room.blackMaster = getNextPlayer(room.blackMaster, "black");
                     room.whiteMaster = getNextPlayer(room.whiteMaster, "white");
-                    room.readyPlayers.clear();
                     state.black.code = shuffleArray([1, 2, 3, 4]).slice(0, 3);
                     state.white.code = shuffleArray([1, 2, 3, 4]).slice(0, 3);
-                    state.black.codeWords = [];
-                    state.white.codeWords = [];
-                    room.blackCodeWords = [];
-                    room.whiteCodeWords = [];
-                    state.black.guesses = [];
-                    state.white.guesses = [];
-                    state.black.hackGuesses = [];
-                    state.white.hackGuesses = [];
+                    resetRound();
                     startTimer();
                     update();
                     updateState();
@@ -495,6 +505,20 @@ function init(wsServer, path) {
                 "start-game": (user) => {
                     if (user === room.hostId)
                         startGame();
+                },
+                "shuffle-players": (user) => {
+                    if (user === room.hostId) {
+                        if (room.phase !== 0)
+                            resetGame();
+                        let players = [];
+                        players = players.concat([...room.black]);
+                        players = players.concat([...room.white]);
+                        shuffleArray(players);
+                        room.black = new JSONSet(players.splice(0, Math.ceil(players.length / 2)));
+                        room.white = new JSONSet(players);
+                        update();
+                        updateState();
+                    }
                 },
                 "toggle-lock": (user) => {
                     if (user === room.hostId)
