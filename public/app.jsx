@@ -236,10 +236,20 @@ class WordsInputPane extends React.Component {
                                         ? (!~data.readyPlayers.indexOf(data.userId)
                                             ? (<input placeholder={data.player.words[data.player.code[index] - 1]}
                                                       onChange={(evt) => game.handleChangeCodeWord(index, evt.target.value)}
-                                                      defaultValue={data.player.codeWords && data.player.codeWords[index]}/>)
+                                                      value={(data.player.codeWords && data.player.codeWords[index]) || ""}/>)
                                             : data.player.codeWords[index])
                                         : !(data.teamAnimPhase != null && data.teamAnimPhase < index)
-                                            ? ((data[`${color}CodeWords`] && data[`${color}CodeWords`][index]) || emptyHolder)
+                                            ? <span
+                                                className="code-word">{(data[`${color}CodeWords`] && data[`${color}CodeWords`][index]) ||
+                                            emptyHolder}
+                                                {data.phase === 2
+                                                    ? <i className="material-icons host-button edit-word-button"
+                                                         title="Edit"
+                                                         onClick={() => game.handleEditCodeWord(color, index)}>
+                                                        &nbsp;edit
+                                                    </i>
+                                                    : ""}
+                                            </span>
                                             : emptyHolder}
                                 </div>
                                 <div className="code-input">
@@ -730,6 +740,14 @@ class Game extends React.Component {
             popup.confirm({content: "Game will be aborted. Are you sure?"}, (evt) => evt.proceed && this.socket.emit("shuffle-players"));
         else
             this.socket.emit("shuffle-players");
+    }
+
+    handleEditCodeWord(color, index) {
+        const word = this.state[`${color}CodeWords`][index];
+        popup.prompt({content: "Edit command", value: word}, (evt) => {
+            if (evt.proceed && evt.input_value.trim())
+                this.socket.emit("edit-code-word", color, index, evt.input_value);
+        });
     }
 
     render() {

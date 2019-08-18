@@ -1018,3 +1018,15 @@ body.dark-theme {
 .round-code {
     margin-right: 15px;
 }
+
+.edit-word-button {
+    visibility: hidden;
+    font-size: 15px;
+    vertical-align: middle;
+    color: #00000087;
+    cursor: pointer;
+}
+
+.code-word:hover .edit-word-button {
+    visibility: visible;
+}
