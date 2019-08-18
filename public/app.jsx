@@ -242,7 +242,7 @@ class WordsInputPane extends React.Component {
                                             ? <span
                                                 className="code-word">{(data[`${color}CodeWords`] && data[`${color}CodeWords`][index]) ||
                                             emptyHolder}
-                                                {data.phase === 2
+                                                {(data.phase === 2 && data.hostId === data.userId)
                                                     ? <i className="material-icons host-button edit-word-button"
                                                          title="Edit"
                                                          onClick={() => game.handleEditCodeWord(color, index)}>
