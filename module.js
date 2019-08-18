@@ -405,6 +405,13 @@ function init(wsServer, path) {
                         updateState();
                     }
                 },
+                "edit-code-word": (user, color, index, word) => {
+                    if (room.phase === 2 && ~[0, 1, 2].indexOf(index) && ~["black", "white"].indexOf(color)
+                        && word && hostId === user) {
+                        room[`${color}CodeWords`][index] = word;
+                        update();
+                    }
+                },
                 "add-guess": (user, code, isHack) => {
                     if (room.phase === 2 && (room.black.has(user) || room.white.has(user))
                         && code && code.every && code.every((number) => ~[1, 2, 3, 4].indexOf(number))
