@@ -236,7 +236,7 @@ class WordsInputPane extends React.Component {
                                         ? (!~data.readyPlayers.indexOf(data.userId)
                                             ? (<input placeholder={data.player.words[data.player.code[index] - 1]}
                                                       onChange={(evt) => game.handleChangeCodeWord(index, evt.target.value)}
-                                                      value={(data.player.codeWords && data.player.codeWords[index]) || ""}/>)
+                                                      defaultValue={(data.player.codeWords && data.player.codeWords[index]) || ""}/>)
                                             : data.player.codeWords[index])
                                         : !(data.teamAnimPhase != null && data.teamAnimPhase < index)
                                             ? <span
@@ -680,7 +680,7 @@ class Game extends React.Component {
     handleChangeCodeWord(index, word) {
         this.state.player.codeWords[index] = word;
         this.setState(this.state);
-        this.socket.emit("set-code-word", index, word);
+        this.debouncedEmit("set-code-word", index, word);
     }
 
     handleClickReady() {
