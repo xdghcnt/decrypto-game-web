@@ -22,9 +22,7 @@ function init(wsServer, path) {
         engCodeWords = JSON.parse(words)[0];
     });
 
-    app.get(path, function (req, res) {
-        res.sendFile(`${__dirname}/public/app.html`);
-    });
+    registry.handleAppPage(path, `${__dirname}/public/app.html`);
     app.use("/decrypto", express.static(`${__dirname}/public`));
 
     class GameState extends EventEmitter {
