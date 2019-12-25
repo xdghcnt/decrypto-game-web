@@ -373,6 +373,7 @@ class Game extends React.Component {
         initArgs.userName = localStorage.userName;
         initArgs.token = localStorage.decryptoUserToken;
         initArgs.userColor = localStorage.decryptoUserColor;
+        initArgs.wssToken = window.wssToken;
         this.socket = window.socket.of("decrypto");
         this.socket.on("state", state => {
             const
