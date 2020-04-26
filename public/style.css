@@ -1030,3 +1030,8 @@ body.dark-theme {
 .code-word:hover .edit-word-button {
     visibility: visible;
 }
+
+.room-main-link {
+    box-shadow: 0 0 4px 1px black;
+    padding: 4px;
+}

@@ -1077,6 +1077,7 @@ class Game extends React.Component {
                                       className="toggle-theme material-icons settings-button">wb_sunny</i>)}
                         </div>
                         <i className="settings-hover-button material-icons">settings</i>
+                        <CommonRoom state={this.state}/>
                     </div>
                 </div>
             );
