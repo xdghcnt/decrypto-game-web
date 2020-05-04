@@ -378,6 +378,7 @@ class Game extends React.Component {
         initArgs.wssToken = window.wssToken;
         this.socket = window.socket.of("decrypto");
         this.socket.on("state", state => {
+            CommonRoom.processCommonRoom(state, this.state);
             const
                 init = !this.state.inited,
                 updateTokenAnim = this.state.blackFailCount < state.blackFailCount
@@ -1038,8 +1039,8 @@ class Game extends React.Component {
                         </div>) : ""}
 
                         <div className="side-buttons">
-                            <i onClick={() => window.location = parentDir}
-                               className="material-icons exit settings-button">exit_to_app</i>
+                            <i onClick={() => this.socket.emit("set-room-mode", false)}
+                               className="material-icons exit settings-button">home</i>
                             <i onClick={() => this.openRules()}
                                className="material-icons settings-button">help_outline</i>
                             {isHost ? (!data.timed
@@ -1077,8 +1078,8 @@ class Game extends React.Component {
                                       className="toggle-theme material-icons settings-button">wb_sunny</i>)}
                         </div>
                         <i className="settings-hover-button material-icons">settings</i>
-                        <CommonRoom state={this.state}/>
                     </div>
+                    <CommonRoom state={this.state} app={this}/>
                 </div>
             );
         } else return (<div/>);

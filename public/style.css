@@ -1031,6 +1031,15 @@ body.dark-theme {
     visibility: visible;
 }
 
+.room-mode-dialog {
+    backdrop-filter: blur(14px);
+    z-index: 2;
+}
+
+.panel {
+    box-shadow: 0 0 4px 1px #737373;
+}
+
 .room-main-link {
     box-shadow: 0 0 4px 1px black;
     padding: 4px;
