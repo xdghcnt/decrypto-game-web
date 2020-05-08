@@ -1005,7 +1005,7 @@ body.dark-theme {
 
 .switch-black-slots {
     position: absolute;
-    top: 0;
+    top: 47px;
     left: 0;
     height: auto;
     width: 59px;
