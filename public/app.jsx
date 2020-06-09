@@ -619,8 +619,9 @@ class Game extends React.Component {
         this.socket.emit("black-slot-join", color);
     }
 
-    handleGiveHost(user) {
-        this.socket.emit("give-host", user);
+    handleGiveHost(id, evt) {
+        evt.stopPropagation();
+        popup.confirm({content: `Give host ${this.state.playerNames[id]}?`}, (evt) => evt.proceed && this.socket.emit("give-host", id));
     }
 
     handleRemovePlayer(user) {
