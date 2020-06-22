@@ -495,14 +495,19 @@ function init(wsServer, path) {
                         update();
                     } else if (room.phase === 2 && (room.black.has(user) || room.white.has(user))) {
                         if (room.rounds.length > 0 || (room.blackMaster !== user && room.whiteMaster !== user)) {
-                            if (room.readyPlayers.has(user))
-                                room.readyPlayers.delete(user);
-                            else
-                                room.readyPlayers.add(user);
-                            if (room.readyPlayers.size === (room.black.size + room.white.size))
-                                endRound();
-                            else
-                                update();
+                            const
+                                color = room.black.has(user) ? "black" : "white",
+                                guessList = state[color]["guesses"];
+                            if (guessList.length > 0) {
+                                if (room.readyPlayers.has(user))
+                                    room.readyPlayers.delete(user);
+                                else
+                                    room.readyPlayers.add(user);
+                                if (room.readyPlayers.size === (room.black.size + room.white.size))
+                                    endRound();
+                                else
+                                    update();
+                            }
                         }
                     }
                 },
