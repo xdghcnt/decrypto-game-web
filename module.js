@@ -1,7 +1,6 @@
 function init(wsServer, path) {
     const
         fs = require('fs'),
-        express = require('express'),
         app = wsServer.app,
         registry = wsServer.users,
         randomColor = require('randomcolor'),
@@ -22,7 +21,7 @@ function init(wsServer, path) {
     });
 
     registry.handleAppPage(path, `${__dirname}/public/app.html`);
-    app.use("/decrypto", express.static(`${__dirname}/public`));
+    app.use("/decrypto", wsServer.static(`${__dirname}/public`));
 
     class GameState extends wsServer.users.RoomState {
         constructor(hostId, hostData, userRegistry) {
