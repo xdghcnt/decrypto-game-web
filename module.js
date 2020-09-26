@@ -68,6 +68,7 @@ function init(wsServer, path) {
                         //{ white: {codeWords: [], try: [], hackTry [] } }
                     ],
                     phase: 0,
+                    managedVoice: true,
                     testMode
                 };
             if (testMode) {
@@ -95,7 +96,20 @@ function init(wsServer, path) {
             this.state = state;
             const
                 send = (target, event, data) => userRegistry.send(target, event, data),
-                update = () => send(room.onlinePlayers, "state", room),
+                update = () => {
+                    if (room.voiceEnabled)
+                        processUserVoice();
+                    send(room.onlinePlayers, "state", room);
+                },
+                processUserVoice = () => {
+                    room.userVoice = {};
+                    room.onlinePlayers.forEach((user) => {
+                        if (!room.managedVoice || !room.teamsLocked || room.phase === 0)
+                            room.userVoice[user] = true;
+                        else if (room.black.has(user) || room.white.has(user))
+                            room.userVoice[user] = true;
+                    });
+                },
                 sendState = (user) => {
                     if (room.blackMaster === user) {
                         send(user, "player-state", Object.assign({}, state.black, {
@@ -383,10 +397,12 @@ function init(wsServer, path) {
                         registry.log(error.message);
                     }
                 };
+            this.updatePublicState = update;
             this.userJoin = userJoin;
             this.userLeft = userLeft;
             this.userEvent = userEvent;
             this.eventHandlers = {
+                ...this.eventHandlers,
                 "highlight": (user, data) => {
                     if (room.black.has(user) || room.white.has(user)) {
                         const color = room.black.has(user) ? "black" : "white";

@@ -30,12 +30,12 @@ class Player extends React.Component {
             })}
                  onTouchStart={(e) => e.target.focus()}
                  data-playerId={id}>
-                <div className="player-color"
+                <div className={cs("player-color", ...UserAudioMarker.getAudioMarkerClasses(data, id))}
                      style={{
                          background: data.playerColors[id],
                          "box-shadow": (data.phase === 2 && ~data.readyPlayers.indexOf(id))
                              ? `0 0 0 3px ${data.playerColors[id]}85`
-                             : "none"
+                             : null
                      }}
                      onClick={(evt) => !evt.stopPropagation() && (id === data.userId) && game.handleChangeColor()}/>
                 <span className="player-name">{data.playerNames[id]}&nbsp;</span>
@@ -353,6 +353,7 @@ class WordColumn extends React.Component {
 
 class Game extends React.Component {
     componentDidMount() {
+        this.gameName = "decrypto";
         const initArgs = {};
         if (parseInt(localStorage.darkThemeDecrypto))
             document.body.classList.add("dark-theme");
@@ -370,7 +371,7 @@ class Game extends React.Component {
             initArgs.acceptDelete = localStorage.acceptDelete;
             delete localStorage.acceptDelete;
         }
-        initArgs.roomId = location.hash.substr(1);
+        initArgs.roomId = this.roomId = location.hash.substr(1);
         initArgs.userId = this.userId = localStorage.decryptoUserId;
         initArgs.userName = localStorage.userName;
         initArgs.token = localStorage.decryptoUserToken;
