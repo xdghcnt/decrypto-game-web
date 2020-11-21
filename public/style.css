@@ -1044,3 +1044,8 @@ body.dark-theme {
     box-shadow: 0 0 4px 1px black;
     padding: 4px;
 }
+
+.guess-word-correct {
+    font-weight: bold;
+    color: green;
+}

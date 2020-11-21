@@ -155,6 +155,7 @@ function init(wsServer, path) {
                     room.paused = true;
                     room.phase = 0;
                     room.roundAnim = false;
+                    room.wordsTieBreaker = false;
                     clearInterval(timerInterval);
                     clearInterval(animInterval);
                     room.whiteFailCount = 0;
@@ -296,6 +297,7 @@ function init(wsServer, path) {
                         && room.whiteFailCount < 2 && room.blackHackCount < 2 && room.blackFailCount < 2)
                         room.teamWin = "white";
                     else {
+                        room.wordsTieBreaker = true;
                         let
                             blackPoints = room.blackHackCount - room.blackFailCount,
                             whitePoints = room.whiteHackCount - room.whiteFailCount;

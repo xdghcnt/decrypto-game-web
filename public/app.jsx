@@ -318,7 +318,14 @@ class WordColumn extends React.Component {
             game = this.props.game,
             hasWords = !!data.player.words,
             emptyHolder = <span className="empty-holder">&lt;Empty&gt;</span>,
-            unknownHolder = "";
+            unknownHolder = "",
+            renderWords = (guess, word) => {
+                guess = guess || "-";
+                return <span>
+                    {guess} ({word}) {data.wordsTieBreaker && guess.toLowerCase() === word.toLowerCase()
+                    ? <span className='guess-word-correct'>+1</span> : ""}
+                </span>;
+            };
         return (
             <div className={cs("word-column", isEnemy ? enemyTeam : playerTeam)}>
                 <div className="word">
@@ -338,8 +345,8 @@ class WordColumn extends React.Component {
                                     : data.player.wordGuesses[index])
                             : unknownHolder
                         : (!isEnemy
-                            ? `${(data[`${enemyTeam}WordGuesses`][index]) || "-"} (${data[`${playerTeam}Words`][index]})`
-                            : `${(data[`${playerTeam}WordGuesses`][index] || "-")} (${data[`${enemyTeam}Words`][index]})`)}
+                            ? renderWords(data[`${enemyTeam}WordGuesses`][index], data[`${playerTeam}Words`][index])
+                            : renderWords(data[`${playerTeam}WordGuesses`][index], data[`${enemyTeam}Words`][index]))}
                 </div>
                 <div
                     className="word-codes-list">{codeList[index].length ? codeList[index].map((word) =>
