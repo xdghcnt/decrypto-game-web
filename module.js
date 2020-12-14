@@ -29,6 +29,7 @@ function init(wsServer, path) {
             let timerInterval, animInterval;
             const
                 room = {
+                    ...this.room,
                     inited: true,
                     hostId: hostId,
                     spectators: new JSONSet(),

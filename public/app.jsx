@@ -386,7 +386,11 @@ class Game extends React.Component {
         initArgs.wssToken = window.wssToken;
         this.socket = window.socket.of("decrypto");
         this.socket.on("state", state => {
-            CommonRoom.processCommonRoom(state, this.state);
+            CommonRoom.processCommonRoom(state, this.state, {
+                maxPlayers: "∞",
+                largeImageKey: "decrypto",
+                details: "Декодер"
+            });
             const
                 init = !this.state.inited,
                 updateTokenAnim = this.state.blackFailCount < state.blackFailCount
