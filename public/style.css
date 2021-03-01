@@ -1049,3 +1049,8 @@ body.dark-theme {
     font-weight: bold;
     color: green;
 }
+
+.chat-send-input {
+    color: black !important;
+}
+
