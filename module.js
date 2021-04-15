@@ -422,7 +422,7 @@ function init(wsServer, path) {
                 },
                 "edit-code-word": (user, color, index, word) => {
                     if (room.phase === 2 && ~[0, 1, 2].indexOf(index) && ~["black", "white"].indexOf(color)
-                        && word && hostId === user) {
+                        && word && room.hostId === user) {
                         room[`${color}CodeWords`][index] = word;
                         update();
                     }
