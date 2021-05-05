@@ -9,10 +9,12 @@ function init(wsServer, path) {
 
     let defaultCodeWords, engCodeWords;
     fs.readFile(`${__dirname}/words.json`, "utf8", function (err, words) {
-        defaultCodeWords = JSON.parse(words)[0];
+        defaultCodeWords = JSON.parse(words);
         fs.readFile(`${registry.config.appDir || __dirname}/moderated-words.json`, "utf8", function (err, words) {
             if (words) {
-                defaultCodeWords = JSON.parse(words)[1];
+                let moderatedWords = JSON.parse(words);
+                moderatedWords[0] = defaultCodeWords[0];
+                defaultCodeWords = moderatedWords;
             }
         });
     });
@@ -69,6 +71,9 @@ function init(wsServer, path) {
                     ],
                     phase: 0,
                     managedVoice: true,
+                    mode: "ru",
+                    modeStarted: "ru",
+                    wordsLevel: 1,
                     testMode
                 };
             if (testMode) {
@@ -80,7 +85,7 @@ function init(wsServer, path) {
             }
             this.room = room;
             this.lastInteraction = new Date();
-            const state = {black: {}, white: {}};
+            const state = {black: {}, white: {}, words: null};
             //    white: {
             //        words: [],
             //        code: [],
@@ -146,9 +151,21 @@ function init(wsServer, path) {
                         resetGame();
                         if (room.timed)
                             room.paused = false;
-                        state.black.words = defaultCodeWords.slice(0, 4);
-                        state.white.words = defaultCodeWords.slice(4, 8);
-                        shuffleArray(defaultCodeWords);
+
+                        state.words = state.words || [];
+                        const wordsCount = 8;
+
+                        if (state.words.length < wordsCount) {
+                            state.words = [];
+                            state.words = ["ru", "alias"].includes(room.mode)
+                                ? state.words.concat(defaultCodeWords[room.wordsLevel])
+                                : state.words.concat(engCodeWords);
+                            shuffleArray(state.words);
+                        }
+                        state.black.words = state.words.splice(0, 4);
+                        state.white.words = state.words.splice(0, 4);
+                        room.modeStarted = room.mode;
+
                         startRound();
                     }
                 },
@@ -637,7 +654,27 @@ function init(wsServer, path) {
                         update();
                         sendState(user);
                     }
-                }
+                },
+                "toggle-words-level": (user, level) => {
+                    if (user === room.hostId && ~[0, 1, 2, 3].indexOf(level)) {
+                        state.words = [];
+                        room.wordsLevel = level;
+                    }
+                    update();
+                },
+                "toggle-words-mode": (user) => {
+                    if (user === room.hostId) {
+                        state.words = [];
+                        let
+                            modeList = ["ru", "en", "alias"],
+                            nextMode = modeList.indexOf(room.mode) + 1;
+                        if (!modeList[nextMode])
+                            nextMode = 0;
+                        room.wordsLevel = 1;
+                        room.mode = modeList[nextMode];
+                    }
+                    update();
+                },
             };
         }
 

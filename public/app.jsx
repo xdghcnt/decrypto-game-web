@@ -767,6 +767,14 @@ class Game extends React.Component {
         });
     }
 
+    handleToggleWords(level) {
+        this.socket.emit("toggle-words-level", level);
+    }
+
+    handleToggleWordsMode() {
+        this.socket.emit("toggle-words-mode");
+    }
+
     render() {
         clearTimeout(this.timerTimeout);
         if (this.state.disconnected)
@@ -778,6 +786,7 @@ class Game extends React.Component {
                 game = this,
                 user = data.userId,
                 isHost = data.hostId === data.userId,
+                inProcess = !data.paused,
                 parentDir = location.pathname.match(/(.+?)\//)[1],
                 notEnoughPlayers = data.phase === 0 && (data.black.length < 2 || data.white.length < 2),
                 isSpectator = !!~data.spectators.indexOf(user),
@@ -843,7 +852,10 @@ class Game extends React.Component {
                             {(data.player.words ? data.player.words.map((word, index) =>
                                 <div
                                     className={cs("stand-code", `stand-code-${index}`)}>
-                                    <div className="stand-code-word">{hyphenate(word) || "?"}</div>
+                                    <div className="stand-code-word">{word
+                                    ? ((data.modeStarted === "ru" || data.modeStarted === "alias")
+                                        ? window.hyphenate
+                                        : window.hyphenateEn)(word) : "?"}</div>
                                 </div>) : "")}
                             <div className="stand-controls">
                                 <div className="stand-tumblers">
@@ -1049,8 +1061,54 @@ class Game extends React.Component {
                                         </div>) : ""}
                                 </div>
                             </div>
+                            <div className="little-controls words-level">
+                                    <span className="words-level-label">Cards <span
+                                        className={"words-lang" + ((isHost && !inProcess) ? " settings-button" : "")}
+                                        onClick={() => !inProcess && this.handleToggleWordsMode()}>
+                                        {this.state.mode.toUpperCase()}
+                                    </span> :</span>
+                                {this.state.mode !== "alias" ? (<span
+                                    className={cs({
+                                        "settings-button": isHost && !inProcess && this.state.mode === "ru",
+                                        "level-selected": this.state.wordsLevel === 0 || this.state.mode !== "ru"
+                                    })}
+                                    onClick={() => this.state.mode === "ru" && !inProcess && this.handleToggleWords(0)}>
+                                        Original
+                                    </span>) : ""}
+                                {this.state.mode === "ru" ? (<span
+                                    className={cs({
+                                        "settings-button": isHost && !inProcess,
+                                        "level-selected": this.state.wordsLevel === 1
+                                    })}
+                                    onClick={() => !inProcess && this.handleToggleWords(1)}>
+                                        Full
+                                    </span>) : ""}
+                                {this.state.mode === "alias" ? (<span
+                                    className={cs({
+                                        "settings-button": isHost && !inProcess,
+                                        "level-selected": this.state.wordsLevel === 1
+                                    })}
+                                    onClick={() => !inProcess && this.handleToggleWords(1)}>
+                                        Easy
+                                    </span>) : ""}
+                                {this.state.mode === "alias" ? (<span
+                                    className={cs({
+                                        "settings-button": isHost && !inProcess,
+                                        "level-selected": this.state.wordsLevel === 2
+                                    })}
+                                    onClick={() => !inProcess && this.handleToggleWords(2)}>
+                                        Normal
+                                    </span>) : ""}
+                                {this.state.mode === "alias" ? (<span
+                                    className={cs({
+                                        "settings-button": isHost && !inProcess,
+                                        "level-selected": this.state.wordsLevel === 3
+                                    })}
+                                    onClick={() => !inProcess && this.handleToggleWords(3)}>
+                                        Hard
+                                    </span>) : ""}
+                            </div>
                         </div>) : ""}
-
                         <div className="side-buttons">
                             {this.state.userId === this.state.hostId ?
                                 <i onClick={() => this.socket.emit("set-room-mode", false)}

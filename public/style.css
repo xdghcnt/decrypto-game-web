@@ -67,7 +67,7 @@ body.dark-theme {
     text-align: left;
     border-bottom: 1px solid;
     padding-bottom: 6px;
-    height: 25px;
+    height: 26px;
 }
 
 .little-controls input {
@@ -1054,3 +1054,24 @@ body.dark-theme {
     color: black !important;
 }
 
+.words-lang {
+    border: 1px solid;
+    padding: 2px;
+    font-size: 12px;
+    vertical-align: text-bottom;
+}
+
+.words-level-label {
+    margin-right: 0 !important;
+    padding-right: 0 !important;
+}
+
+.little-controls.words-level > span {
+    padding: 2px;
+    display: inline-block;
+    margin: 4px;
+}
+
+.level-selected {
+    background: #79656533;
+}
