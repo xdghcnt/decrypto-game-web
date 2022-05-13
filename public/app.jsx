@@ -381,7 +381,7 @@ class Game extends React.Component {
         initArgs.roomId = this.roomId = location.hash.substr(1);
         initArgs.userId = this.userId = localStorage.decryptoUserId;
         initArgs.userName = localStorage.userName;
-        initArgs.token = localStorage.decryptoUserToken;
+        initArgs.token = this.userToken = localStorage.decryptoUserToken;
         initArgs.userColor = localStorage.decryptoUserColor;
         initArgs.wssToken = window.wssToken;
         this.socket = window.socket.of("decrypto");
