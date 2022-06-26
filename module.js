@@ -27,7 +27,7 @@ function init(wsServer, path) {
 
     class GameState extends wsServer.users.RoomState {
         constructor(hostId, hostData, userRegistry) {
-            super(hostId, hostData, userRegistry);
+            super(hostId, hostData, userRegistry, registry.games.decrypto.id, path);
             let timerInterval, animInterval;
             const
                 room = {
@@ -338,6 +338,14 @@ function init(wsServer, path) {
                     room.whiteWords = state.white.words;
                     room.blackWordGuesses = state.black.wordGuesses;
                     room.whiteWordGuesses = state.white.wordGuesses;
+                    if (room.teamWin && room.teamWin !== "tie") {
+                        for (const user of room[room.teamWin]) {
+                            registry.authUsers.processAchievement({user, room}, registry.achievements.win100Decrypto.id);
+                            registry.authUsers.processAchievement({user, room}, registry.achievements.winGames.id, {
+                                game: registry.games.decrypto.id
+                            });
+                        }
+                    }
                     update();
                     updateState();
                 },
@@ -594,11 +602,6 @@ function init(wsServer, path) {
                         room[`${type}Time`] = value;
                     update();
                 },
-                "change-name": (user, value) => {
-                    if (value)
-                        room.playerNames[user] = value.substr && value.substr(0, 60);
-                    update();
-                },
                 "change-color": (user) => {
                     room.playerColors[user] = randomColor();
                     update();
@@ -675,6 +678,9 @@ function init(wsServer, path) {
                     }
                     update();
                 },
+                "remove-sticker": (user) => {
+                    registry.authUsers.processAchievement({user, room}, registry.achievements.ruinDecryptoSticker.id);
+                }
             };
         }
 
@@ -735,7 +741,7 @@ function init(wsServer, path) {
         }
     }
 
-    registry.createRoomManager(path, channel, GameState);
+    registry.createRoomManager(path, GameState);
 }
 
 module.exports = init;

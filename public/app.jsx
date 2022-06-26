@@ -362,6 +362,7 @@ class Game extends React.Component {
     componentDidMount() {
         this.gameName = "decrypto";
         const initArgs = {};
+        localStorage.authToken = localStorage.authToken || makeId();
         if (parseInt(localStorage.darkThemeDecrypto))
             document.body.classList.add("dark-theme");
         if (!localStorage.decryptoUserId || !localStorage.decryptoUserToken) {
@@ -378,13 +379,14 @@ class Game extends React.Component {
             initArgs.acceptDelete = localStorage.acceptDelete;
             delete localStorage.acceptDelete;
         }
+        initArgs.authToken = localStorage.authToken;
         initArgs.roomId = this.roomId = location.hash.substr(1);
         initArgs.userId = this.userId = localStorage.decryptoUserId;
         initArgs.userName = localStorage.userName;
         initArgs.token = this.userToken = localStorage.decryptoUserToken;
         initArgs.userColor = localStorage.decryptoUserColor;
         initArgs.wssToken = window.wssToken;
-        this.socket = window.socket.of("decrypto");
+        this.socket = window.socket.of(location.pathname);
         this.socket.on("state", state => {
             CommonRoom.processCommonRoom(state, this.state, {
                 maxPlayers: "∞",
@@ -545,8 +547,10 @@ class Game extends React.Component {
             newState = (state ? 0 : 1);
         else if (kind === "knob")
             newState = this.getRandomInt(11);
-        else if (kind === "sticker" && !state && this.getRandomInt(10) === 9)
+        else if (kind === "sticker" && !state && this.getRandomInt(10) === 9) {
             newState = 1;
+            this.socket.emit('remove-sticker');
+        }
         this.viewParams[`${color}-${kind}-${index}`] = newState;
         if (kind !== "sticker") {
             this.viewParams[`${color}-lamp-0`] = this.getRandomInt(2);
