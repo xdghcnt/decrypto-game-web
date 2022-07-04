@@ -38,7 +38,7 @@ class Player extends React.Component {
                              : null
                      }}
                      onClick={(evt) => !evt.stopPropagation() && (id === data.userId) && game.handleChangeColor()}/>
-                <span className="player-name">{data.playerNames[id]}&nbsp;</span>
+                <span className="player-name"><PlayerName data={data} id={id} />&nbsp;</span>
                 {(data.whiteMaster === id || data.blackMaster === id)
                     ? <span
                         className={cs("material-icons", "master-icon", {ready: data.phase === 1 && !!~data.readyPlayers.indexOf(id)})}
@@ -361,38 +361,16 @@ class WordColumn extends React.Component {
 class Game extends React.Component {
     componentDidMount() {
         this.gameName = "decrypto";
-        const initArgs = {};
-        localStorage.authToken = localStorage.authToken || makeId();
+        const initArgs = CommonRoom.roomInit(this);
         if (parseInt(localStorage.darkThemeDecrypto))
             document.body.classList.add("dark-theme");
-        if (!localStorage.decryptoUserId || !localStorage.decryptoUserToken) {
-            while (!localStorage.userName)
-                localStorage.userName = prompt("Your name");
-            localStorage.decryptoUserId = makeId();
-            localStorage.decryptoUserToken = makeId();
-        }
-        if (!location.hash)
-            history.replaceState(undefined, undefined, location.origin + location.pathname + "#" + makeId());
-        else
-            history.replaceState(undefined, undefined, location.origin + location.pathname + location.hash);
-        if (localStorage.acceptDelete) {
-            initArgs.acceptDelete = localStorage.acceptDelete;
-            delete localStorage.acceptDelete;
-        }
-        initArgs.authToken = localStorage.authToken;
-        initArgs.roomId = this.roomId = location.hash.substr(1);
-        initArgs.userId = this.userId = localStorage.decryptoUserId;
-        initArgs.userName = localStorage.userName;
-        initArgs.token = this.userToken = localStorage.decryptoUserToken;
         initArgs.userColor = localStorage.decryptoUserColor;
-        initArgs.wssToken = window.wssToken;
-        this.socket = window.socket.of(location.pathname);
         this.socket.on("state", state => {
             CommonRoom.processCommonRoom(state, this.state, {
                 maxPlayers: "∞",
                 largeImageKey: "decrypto",
                 details: "Декодер"
-            });
+            }, this);
             const
                 init = !this.state.inited,
                 updateTokenAnim = this.state.blackFailCount < state.blackFailCount
@@ -637,7 +615,7 @@ class Game extends React.Component {
 
     handleGiveHost(id, evt) {
         evt.stopPropagation();
-        popup.confirm({content: `Give host ${this.state.playerNames[id]}?`}, (evt) => evt.proceed && this.socket.emit("give-host", id));
+        popup.confirm({content: `Give host ${window.commonRoom.getPlayerName(id)}?`}, (evt) => evt.proceed && this.socket.emit("give-host", id));
     }
 
     handleRemovePlayer(user) {
@@ -678,7 +656,7 @@ class Game extends React.Component {
     }
 
     handleClickChangeName() {
-        popup.prompt({content: "New name", value: this.state.playerNames[this.state.userId] || ""}, (evt) => {
+        popup.prompt({content: "New name", value: window.commonRoom.getPlayerName(this.state.userId) || ""}, (evt) => {
             if (evt.proceed && evt.input_value.trim()) {
                 this.socket.emit("change-name", evt.input_value.trim());
                 localStorage.userName = evt.input_value.trim();
@@ -849,6 +827,7 @@ class Game extends React.Component {
                     {
                         [`${this.state.teamWin}-win`]: this.state.teamWin
                     })}>
+                    <CommonRoom state={this.state} app={this}/>
                     <div className="main-row">
                         <Team color="white" data={data} game={game}
                               playerTeam={playerTeam === "white"}/>
@@ -1155,7 +1134,6 @@ class Game extends React.Component {
                         </div>
                         <i className="settings-hover-button material-icons">settings</i>
                     </div>
-                    <CommonRoom state={this.state} app={this}/>
                 </div>
             );
         } else return (<div/>);
